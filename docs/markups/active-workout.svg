@@ -11,7 +11,7 @@
     .value { font-size: 34px; font-weight: 750; letter-spacing: -1px; }
   </style>
   <rect width="390" height="844" fill="#eef0f2"/>
-  <rect x="9" y="9" width="372" height="826" rx="28" fill="#fbfbfc"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#e7e9ec"/>
   <rect x="151" y="18" width="88" height="5" rx="3" fill="#c9cbd0"/>
   <text x="31" y="61" class="small muted">9:41</text>
   <text x="31" y="105" class="body" fill="#c43d3d">‹  Upper Body</text>
@@ -32,13 +32,13 @@
   <text x="45" y="470" class="body">Dumbbell Row</text><text x="343" y="470" class="body" text-anchor="end" fill="#c43d3d">Substitute ›</text>
 
   <text x="31" y="535" class="label">How did it go?</text>
-  <rect x="25" y="553" width="105" height="49" rx="14" fill="#dff5e8"/><text x="77" y="583" class="small" text-anchor="middle" fill="#218653">Completed</text>
+  <rect x="25" y="553" width="105" height="49" rx="14" fill="#f8e3e3"/><text x="77" y="583" class="small" text-anchor="middle" fill="#c43d3d">Completed</text>
   <rect x="142" y="553" width="105" height="49" rx="14" fill="#fbfbfc" stroke="#dfe0e4"/><text x="194" y="583" class="small muted" text-anchor="middle">Too hard</text>
   <rect x="259" y="553" width="106" height="49" rx="14" fill="#fbfbfc" stroke="#dfe0e4"/><text x="312" y="583" class="small muted" text-anchor="middle">Not completed</text>
 
   <text x="31" y="645" class="label">Exercise notes</text>
   <rect x="25" y="660" width="340" height="54" rx="14" fill="#f5f6f7" stroke="#dedfe3"/>
   <text x="43" y="693" class="small muted">Felt strong on the final set…</text>
-  <rect x="25" y="748" width="340" height="49" rx="15" fill="#171821"/>
+  <rect x="25" y="748" width="340" height="49" rx="15" fill="#c43d3d"/>
   <text x="195" y="779" class="label" text-anchor="middle" fill="#ffffff">Next exercise  →</text>
 </svg>

@@ -10,7 +10,7 @@
     .title { font-size: 25px; font-weight: 750; letter-spacing: -0.5px; }
   </style>
   <rect width="390" height="844" fill="#eef0f2"/>
-  <rect x="9" y="9" width="372" height="826" rx="28" fill="#fbfbfc"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#e7e9ec"/>
   <rect x="151" y="18" width="88" height="5" rx="3" fill="#c9cbd0"/>
   <text x="31" y="61" class="small muted">9:41</text>
   <text x="31" y="105" class="body" fill="#c43d3d">‹  Plans</text>

@@ -12,7 +12,7 @@
     .card-title { font-size: 21px; font-weight: 700; }
   </style>
   <rect width="390" height="844" fill="#eef0f2"/>
-  <rect x="9" y="9" width="372" height="826" rx="28" fill="#fbfbfc"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#e7e9ec"/>
   <rect x="151" y="18" width="88" height="5" rx="3" fill="#c9cbd0"/>
   <text x="31" y="61" class="small muted">9:41</text>
   <circle cx="345" cy="56" r="8" fill="#fde7e7"/>
@@ -31,7 +31,7 @@
   <text x="47" y="358" class="small" fill="#f7dede">Dumbbell Row</text>
   <text x="327" y="358" class="small" text-anchor="end" fill="#ffffff">3 × 10  ·  45 lb</text>
   <rect x="47" y="373" width="296" height="2" rx="1" fill="#da7777"/>
-  <rect x="47" y="417" width="296" height="48" rx="16" fill="#171821"/>
+  <rect x="47" y="417" width="296" height="48" rx="16" fill="#c43d3d"/>
   <text x="195" y="447" class="label" text-anchor="middle" fill="#ffffff">Start workout</text>
 
   <text x="31" y="510" class="label">This week</text>
@@ -41,7 +41,7 @@
     <text x="53" y="555">M</text><text x="101" y="555">T</text><text x="149" y="555">W</text><text x="197" y="555">T</text><text x="245" y="555">F</text><text x="293" y="555">S</text><text x="341" y="555">S</text>
   </g>
   <g>
-    <circle cx="53" cy="584" r="13" fill="#dff5e8"/><path d="M47 584l4 4 8-9" fill="none" stroke="#218653" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="53" cy="584" r="13" fill="#f8e3e3"/><path d="M47 584l4 4 8-9" fill="none" stroke="#c43d3d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="101" cy="584" r="13" fill="#c43d3d"/><circle cx="101" cy="584" r="4" fill="#ffffff"/>
     <circle cx="149" cy="584" r="13" fill="#e8eaed"/>
     <circle cx="197" cy="584" r="13" fill="#c43d3d"/><circle cx="197" cy="584" r="4" fill="#ffffff"/>
@@ -50,7 +50,7 @@
 
   <text x="31" y="676" class="label">Recent sessions</text>
   <rect x="25" y="696" width="340" height="65" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
-  <circle cx="54" cy="729" r="16" fill="#dff5e8"/><path d="M47 729l4 4 8-9" fill="none" stroke="#218653" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="54" cy="729" r="16" fill="#f8e3e3"/><path d="M47 729l4 4 8-9" fill="none" stroke="#c43d3d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="82" y="724" class="label">Lower Body</text><text x="82" y="745" class="small muted">Sun, Sep 14  ·  Completed</text>
   <text x="340" y="735" class="body muted" text-anchor="end">›</text>
 

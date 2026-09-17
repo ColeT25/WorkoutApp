@@ -11,14 +11,14 @@
     .card-title { font-size: 18px; font-weight: 700; }
   </style>
   <rect width="390" height="844" fill="#eef0f2"/>
-  <rect x="9" y="9" width="372" height="826" rx="28" fill="#fbfbfc"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#e7e9ec"/>
   <rect x="151" y="18" width="88" height="5" rx="3" fill="#c9cbd0"/>
   <text x="31" y="61" class="small muted">9:41</text>
   <text x="31" y="102" class="small muted">SESSIONS</text>
   <text x="31" y="139" class="title">History</text>
   <text x="359" y="137" class="body" text-anchor="end" fill="#c43d3d">September 2026 ˅</text>
 
-  <rect x="25" y="172" width="340" height="123" rx="22" fill="#171821"/>
+  <rect x="25" y="172" width="340" height="123" rx="22" fill="#4a4d53"/>
   <text x="47" y="207" class="small" fill="#efc0c0">THIS MONTH</text>
   <text x="47" y="253" class="title" fill="#ffffff">8 workouts</text>
   <text x="47" y="276" class="small" fill="#d7d7df">2 more than last month</text>
@@ -38,10 +38,10 @@
 
   <text x="31" y="512" class="label">Recent workouts</text>
   <rect x="25" y="531" width="340" height="76" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
-  <circle cx="54" cy="569" r="16" fill="#dff5e8"/><path d="M47 569l4 4 8-9" fill="none" stroke="#218653" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="54" cy="569" r="16" fill="#f8e3e3"/><path d="M47 569l4 4 8-9" fill="none" stroke="#c43d3d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="82" y="564" class="card-title">Lower Body</text><text x="82" y="586" class="small muted">Sun, Sep 14  ·  5 exercises</text><text x="341" y="576" class="body muted" text-anchor="middle">›</text>
   <rect x="25" y="621" width="340" height="76" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
-  <circle cx="54" cy="659" r="16" fill="#dff5e8"/><path d="M47 659l4 4 8-9" fill="none" stroke="#218653" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="54" cy="659" r="16" fill="#f8e3e3"/><path d="M47 659l4 4 8-9" fill="none" stroke="#c43d3d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="82" y="654" class="card-title">Upper Body</text><text x="82" y="676" class="small muted">Thu, Sep 11  ·  5 exercises</text><text x="341" y="666" class="body muted" text-anchor="middle">›</text>
   <rect x="25" y="711" width="340" height="76" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
   <circle cx="54" cy="749" r="16" fill="#fff1d8"/><text x="54" y="754" class="label" text-anchor="middle" fill="#a86d14">!</text>
