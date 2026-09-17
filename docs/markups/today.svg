@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" role="img" aria-labelledby="title desc">
+  <title id="title">WorkoutApp Today screen mockup</title>
+  <desc id="desc">A mobile Today screen showing the next scheduled workout, this week's completion calendar, and recent history.</desc>
+  <style>
+    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #171821; }
+    .muted { fill: #777985; }
+    .tiny { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; }
+    .small { font-size: 13px; }
+    .body { font-size: 15px; }
+    .label { font-size: 14px; font-weight: 600; }
+    .title { font-size: 29px; font-weight: 750; letter-spacing: -0.7px; }
+    .card-title { font-size: 21px; font-weight: 700; }
+  </style>
+  <rect width="390" height="844" fill="#f3f4f7"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#ffffff"/>
+  <rect x="151" y="18" width="88" height="5" rx="3" fill="#d7d8df"/>
+  <text x="31" y="61" class="small muted">9:41</text>
+  <circle cx="345" cy="56" r="8" fill="#ebe9ff"/>
+  <circle cx="345" cy="56" r="3" fill="#5b4bce"/>
+  <text x="31" y="102" class="small muted">TUESDAY, SEP 16</text>
+  <text x="31" y="139" class="title">Today</text>
+  <text x="31" y="164" class="body muted">Keep the plan simple. Keep moving.</text>
+
+  <rect x="25" y="190" width="340" height="211" rx="22" fill="#5b4bce"/>
+  <text x="47" y="222" class="tiny" fill="#dcd8ff">UP NEXT</text>
+  <text x="47" y="259" class="card-title" fill="#ffffff">Upper Body</text>
+  <text x="47" y="284" class="body" fill="#e7e4ff">5 exercises  ·  repeats Mon / Thu</text>
+  <rect x="47" y="305" width="181" height="1" fill="#8176de"/>
+  <text x="47" y="333" class="small" fill="#e7e4ff">Bench Press</text>
+  <text x="327" y="333" class="small" text-anchor="end" fill="#ffffff">3 × 8  ·  135 lb</text>
+  <text x="47" y="358" class="small" fill="#e7e4ff">Dumbbell Row</text>
+  <text x="327" y="358" class="small" text-anchor="end" fill="#ffffff">3 × 10  ·  45 lb</text>
+  <rect x="47" y="373" width="296" height="2" rx="1" fill="#8176de"/>
+  <rect x="47" y="417" width="296" height="48" rx="16" fill="#171821"/>
+  <text x="195" y="447" class="label" text-anchor="middle" fill="#ffffff">Start workout</text>
+
+  <text x="31" y="510" class="label">This week</text>
+  <text x="359" y="510" class="small muted" text-anchor="end">2 of 4 complete</text>
+  <rect x="25" y="528" width="340" height="91" rx="18" fill="#fafafd" stroke="#e8e8ee"/>
+  <g class="small muted" text-anchor="middle">
+    <text x="53" y="555">M</text><text x="101" y="555">T</text><text x="149" y="555">W</text><text x="197" y="555">T</text><text x="245" y="555">F</text><text x="293" y="555">S</text><text x="341" y="555">S</text>
+  </g>
+  <g>
+    <circle cx="53" cy="584" r="13" fill="#dff5e8"/><path d="M47 584l4 4 8-9" fill="none" stroke="#218653" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="101" cy="584" r="13" fill="#5b4bce"/><circle cx="101" cy="584" r="4" fill="#ffffff"/>
+    <circle cx="149" cy="584" r="13" fill="#f0f0f4"/>
+    <circle cx="197" cy="584" r="13" fill="#5b4bce"/><circle cx="197" cy="584" r="4" fill="#ffffff"/>
+    <circle cx="245" cy="584" r="13" fill="#f0f0f4"/><circle cx="293" cy="584" r="13" fill="#f0f0f4"/><circle cx="341" cy="584" r="13" fill="#f0f0f4"/>
+  </g>
+
+  <text x="31" y="676" class="label">Recent sessions</text>
+  <rect x="25" y="696" width="340" height="65" rx="17" fill="#ffffff" stroke="#e8e8ee"/>
+  <circle cx="54" cy="729" r="16" fill="#dff5e8"/><path d="M47 729l4 4 8-9" fill="none" stroke="#218653" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="82" y="724" class="label">Lower Body</text><text x="82" y="745" class="small muted">Sun, Sep 14  ·  Completed</text>
+  <text x="340" y="735" class="body muted" text-anchor="end">›</text>
+
+  <line x1="25" y1="786" x2="365" y2="786" stroke="#eeeeF2"/>
+  <g text-anchor="middle">
+    <circle cx="70" cy="809" r="4" fill="#5b4bce"/><text x="70" y="827" class="small" fill="#5b4bce">Today</text>
+    <circle cx="166" cy="809" r="4" fill="#b8bac4"/><text x="166" y="827" class="small muted">Plans</text>
+    <circle cx="262" cy="809" r="4" fill="#b8bac4"/><text x="262" y="827" class="small muted">History</text>
+    <circle cx="338" cy="809" r="4" fill="#b8bac4"/><text x="338" y="827" class="small muted">More</text>
+  </g>
+</svg>
