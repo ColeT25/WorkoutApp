@@ -31,7 +31,7 @@ A workout is a named, ordered group of exercises.
 
 Users can:
 
-- Create, edit, and delete workouts.
+- Create, edit, and archive workouts.
 - Add existing exercises to workouts.
 - Remove exercises from workouts.
 - Reorder exercises within a workout.
@@ -80,7 +80,7 @@ Substitution behavior:
 
 ## History and data integrity
 
-Past workout sessions should remain accurate even when exercises or workout templates are later edited or deleted.
+Past workout sessions should remain accurate even when exercises or workout templates are later edited or archived.
 
 Session history should preserve the relevant values from the time of the session, including:
 
@@ -126,5 +126,5 @@ The first version does not need:
 1. Today: scheduled workouts and recent completion history.
 2. Workout editor: create workouts, add/reorder exercises, and assign weekdays.
 3. Exercise editor: manage exercise settings and current weight.
-4. Active workout: complete exercises, substitute exercises, and add notes.
+4. Active workout: complete exercises and add notes.
 5. History: browse completed workouts by date and inspect session details.

@@ -43,10 +43,10 @@ The initial product has no backend, accounts, cloud synchronization, network dep
   Android database driver
   JVM/headless database driver
 
-:android-app
+:app
   Compose screens
   ViewModels
-  Android navigation
+  Android navigation and start-workout review
   Android application wiring
 
 :workout-agent
@@ -98,7 +98,7 @@ create workout
 add exercise to workout
 assign workout to weekday
 start session
-substitute exercise
+start session with optional substitutions
 mark exercise outcome
 finish session
 inspect current state
@@ -119,7 +119,7 @@ The agent uses its own local database for scenarios. It does not directly manipu
 
 ## Storage architecture
 
-The application will use a shared SQLite-backed data design with an Android driver and a JVM/headless driver. The exact cross-platform SQLite library is intentionally left open until implementation scaffolding.
+The application uses a shared SQLite-backed data design with an Android `SQLiteOpenHelper` driver and a JVM/headless JDBC SQLite driver. Both implement the same small `SqlExecutor` boundary and share the schema and repository mapping.
 
 The storage boundary should support real repository integration tests and should not force the headless client to depend on Android-only database APIs.
 
@@ -177,7 +177,7 @@ Finalization should save the session, its snapshots, and weight adjustments tran
 
 ## Temporary substitutions
 
-Substitutions are selected before starting a workout and apply only to that session.
+Substitutions are selected in the start-workout review and passed into session creation. They apply only to that session.
 
 - The underlying workout template is unchanged.
 - History records both the planned and performed exercises.
@@ -201,7 +201,7 @@ Fast JVM tests cover the progression decision table, validation, substitutions, 
 
 ### Storage verification
 
-Repository tests use real database behavior to verify persistence, transactions, snapshots, archives, and recovery.
+The headless integration tests use the real JDBC/SQLite repository to verify persistence, transactions, snapshots, archives, and recovery.
 
 ### Headless scenario verification
 
@@ -217,11 +217,14 @@ GitHub Actions should run the fast checks and build an installable APK. The work
 
 The verification report must distinguish passing unit tests, storage tests, headless scenarios, emulator tests, build checks, and any unavailable or omitted runtime layer.
 
-## Intentional open decisions
+## Current implementation decisions
 
-The following details remain implementation choices rather than product decisions:
+The first implementation uses:
 
-- Exact shared SQLite library.
-- Minimum supported Android version.
-- Final Android package name and application identifier.
-- Exact CLI command syntax versus JSONL-only operation.
+- Kotlin/JVM 17 for the shared modules and Android app.
+- Android API 26 minimum, API 36 compile/target configuration.
+- `com.workoutapp.android` as the Android application ID.
+- JSONL over stdin/stdout as the headless interface, with an installable CLI distribution.
+- SQLite through Android `SQLiteOpenHelper` and headless JDBC SQLite drivers behind the shared `SqlExecutor` boundary.
+
+These choices keep the local MVP small while leaving room for a richer agent protocol or a different UI layer later.

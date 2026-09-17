@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.WorkoutApp" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#C43D3D</item>
+        <item name="android:navigationBarColor">#E7E9EC</item>
+        <item name="android:statusBarColor">#E7E9EC</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
