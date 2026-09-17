@@ -2,44 +2,44 @@
   <title id="title">WorkoutApp exercise editor mockup</title>
   <desc id="desc">A mobile exercise editor showing the shared exercise settings for sets, reps, weight, and progressive overload.</desc>
   <style>
-    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #171821; }
-    .muted { fill: #777985; }
+    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #202124; }
+    .muted { fill: #6f737b; }
     .small { font-size: 13px; }
     .body { font-size: 15px; }
     .label { font-size: 14px; font-weight: 600; }
     .title { font-size: 25px; font-weight: 750; letter-spacing: -0.5px; }
     .value { font-size: 22px; font-weight: 700; }
   </style>
-  <rect width="390" height="844" fill="#f3f4f7"/>
-  <rect x="9" y="9" width="372" height="826" rx="28" fill="#ffffff"/>
-  <rect x="151" y="18" width="88" height="5" rx="3" fill="#d7d8df"/>
+  <rect width="390" height="844" fill="#eef0f2"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#fbfbfc"/>
+  <rect x="151" y="18" width="88" height="5" rx="3" fill="#c9cbd0"/>
   <text x="31" y="61" class="small muted">9:41</text>
-  <text x="31" y="105" class="body" fill="#5b4bce">‹  Exercises</text>
+  <text x="31" y="105" class="body" fill="#c43d3d">‹  Exercises</text>
   <text x="31" y="146" class="title">Edit exercise</text>
-  <text x="359" y="145" class="label" text-anchor="end" fill="#5b4bce">Save</text>
+  <text x="359" y="145" class="label" text-anchor="end" fill="#c43d3d">Save</text>
 
   <text x="31" y="190" class="small muted">EXERCISE NAME</text>
-  <rect x="25" y="203" width="340" height="52" rx="14" fill="#fafafd" stroke="#dcdce5"/>
+  <rect x="25" y="203" width="340" height="52" rx="14" fill="#f5f6f7" stroke="#d1d3d7"/>
   <text x="43" y="236" class="body">Bench Press</text>
 
   <text x="31" y="295" class="label">Plan</text>
-  <rect x="25" y="314" width="161" height="87" rx="17" fill="#fafafd" stroke="#e8e8ee"/>
+  <rect x="25" y="314" width="161" height="87" rx="17" fill="#f5f6f7" stroke="#dedfe3"/>
   <text x="45" y="341" class="small muted">SETS</text><text x="45" y="378" class="value">3</text>
-  <rect x="204" y="314" width="161" height="87" rx="17" fill="#fafafd" stroke="#e8e8ee"/>
+  <rect x="204" y="314" width="161" height="87" rx="17" fill="#f5f6f7" stroke="#dedfe3"/>
   <text x="224" y="341" class="small muted">REPS</text><text x="224" y="378" class="value">8</text>
 
   <text x="31" y="450" class="label">Weight</text>
-  <rect x="25" y="468" width="340" height="67" rx="17" fill="#eeeafd"/>
-  <text x="47" y="510" class="value" fill="#5b4bce">135</text><text x="106" y="510" class="body" fill="#5b4bce">lb</text>
-  <text x="343" y="510" class="body" text-anchor="end" fill="#5b4bce">current weight</text>
+  <rect x="25" y="468" width="340" height="67" rx="17" fill="#f8e3e3"/>
+  <text x="47" y="510" class="value" fill="#c43d3d">135</text><text x="106" y="510" class="body" fill="#c43d3d">lb</text>
+  <text x="343" y="510" class="body" text-anchor="end" fill="#c43d3d">current weight</text>
 
   <text x="31" y="583" class="label">Progressive overload</text>
   <text x="31" y="607" class="small muted">Applied once when the exercise is marked completed or too hard.</text>
-  <rect x="25" y="625" width="161" height="87" rx="17" fill="#ffffff" stroke="#e8e8ee"/>
+  <rect x="25" y="625" width="161" height="87" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
   <text x="45" y="651" class="small muted">INCREASE BY</text><text x="45" y="688" class="value">5</text><text x="90" y="688" class="body muted">lb</text>
-  <rect x="204" y="625" width="161" height="87" rx="17" fill="#ffffff" stroke="#e8e8ee"/>
+  <rect x="204" y="625" width="161" height="87" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
   <text x="224" y="651" class="small muted">DECREASE BY</text><text x="224" y="688" class="value">5</text><text x="269" y="688" class="body muted">lb</text>
 
-  <rect x="25" y="748" width="340" height="47" rx="14" fill="#fafafd"/>
+  <rect x="25" y="748" width="340" height="47" rx="14" fill="#f5f6f7"/>
   <text x="44" y="777" class="small muted">Used in 2 workouts  ·  settings are shared</text>
 </svg>

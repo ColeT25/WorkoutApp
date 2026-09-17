@@ -2,42 +2,42 @@
   <title id="title">WorkoutApp active workout mockup</title>
   <desc id="desc">A mobile active workout screen showing an exercise target, a temporary substitute action, three outcome statuses, notes, and a finish button.</desc>
   <style>
-    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #171821; }
-    .muted { fill: #777985; }
+    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #202124; }
+    .muted { fill: #6f737b; }
     .small { font-size: 13px; }
     .body { font-size: 15px; }
     .label { font-size: 14px; font-weight: 600; }
     .title { font-size: 25px; font-weight: 750; letter-spacing: -0.5px; }
     .value { font-size: 34px; font-weight: 750; letter-spacing: -1px; }
   </style>
-  <rect width="390" height="844" fill="#f3f4f7"/>
-  <rect x="9" y="9" width="372" height="826" rx="28" fill="#ffffff"/>
-  <rect x="151" y="18" width="88" height="5" rx="3" fill="#d7d8df"/>
+  <rect width="390" height="844" fill="#eef0f2"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#fbfbfc"/>
+  <rect x="151" y="18" width="88" height="5" rx="3" fill="#c9cbd0"/>
   <text x="31" y="61" class="small muted">9:41</text>
-  <text x="31" y="105" class="body" fill="#5b4bce">‹  Upper Body</text>
+  <text x="31" y="105" class="body" fill="#c43d3d">‹  Upper Body</text>
   <text x="359" y="105" class="small muted" text-anchor="end">2 of 5</text>
   <rect x="25" y="123" width="340" height="7" rx="4" fill="#ececf1"/>
-  <rect x="25" y="123" width="136" height="7" rx="4" fill="#5b4bce"/>
+  <rect x="25" y="123" width="136" height="7" rx="4" fill="#c43d3d"/>
   <text x="31" y="178" class="small muted">CURRENT EXERCISE</text>
   <text x="31" y="216" class="title">Dumbbell Row</text>
   <text x="31" y="245" class="body muted">3 sets × 10 reps</text>
 
-  <rect x="25" y="276" width="340" height="104" rx="22" fill="#eeeafd"/>
-  <text x="47" y="308" class="small" fill="#5b4bce">CURRENT WEIGHT</text>
-  <text x="47" y="354" class="value" fill="#5b4bce">45 lb</text>
-  <text x="341" y="347" class="small" text-anchor="end" fill="#5b4bce">next completed: 50 lb</text>
+  <rect x="25" y="276" width="340" height="104" rx="22" fill="#f8e3e3"/>
+  <text x="47" y="308" class="small" fill="#c43d3d">CURRENT WEIGHT</text>
+  <text x="47" y="354" class="value" fill="#c43d3d">45 lb</text>
+  <text x="341" y="347" class="small" text-anchor="end" fill="#c43d3d">next completed: 50 lb</text>
 
   <text x="31" y="424" class="label">Using the planned exercise?</text>
-  <rect x="25" y="441" width="340" height="45" rx="14" fill="#ffffff" stroke="#dcdce5"/>
-  <text x="45" y="470" class="body">Dumbbell Row</text><text x="343" y="470" class="body" text-anchor="end" fill="#5b4bce">Substitute ›</text>
+  <rect x="25" y="441" width="340" height="45" rx="14" fill="#fbfbfc" stroke="#d1d3d7"/>
+  <text x="45" y="470" class="body">Dumbbell Row</text><text x="343" y="470" class="body" text-anchor="end" fill="#c43d3d">Substitute ›</text>
 
   <text x="31" y="535" class="label">How did it go?</text>
   <rect x="25" y="553" width="105" height="49" rx="14" fill="#dff5e8"/><text x="77" y="583" class="small" text-anchor="middle" fill="#218653">Completed</text>
-  <rect x="142" y="553" width="105" height="49" rx="14" fill="#ffffff" stroke="#e2e2e8"/><text x="194" y="583" class="small muted" text-anchor="middle">Too hard</text>
-  <rect x="259" y="553" width="106" height="49" rx="14" fill="#ffffff" stroke="#e2e2e8"/><text x="312" y="583" class="small muted" text-anchor="middle">Not completed</text>
+  <rect x="142" y="553" width="105" height="49" rx="14" fill="#fbfbfc" stroke="#dfe0e4"/><text x="194" y="583" class="small muted" text-anchor="middle">Too hard</text>
+  <rect x="259" y="553" width="106" height="49" rx="14" fill="#fbfbfc" stroke="#dfe0e4"/><text x="312" y="583" class="small muted" text-anchor="middle">Not completed</text>
 
   <text x="31" y="645" class="label">Exercise notes</text>
-  <rect x="25" y="660" width="340" height="54" rx="14" fill="#fafafd" stroke="#e8e8ee"/>
+  <rect x="25" y="660" width="340" height="54" rx="14" fill="#f5f6f7" stroke="#dedfe3"/>
   <text x="43" y="693" class="small muted">Felt strong on the final set…</text>
   <rect x="25" y="748" width="340" height="49" rx="15" fill="#171821"/>
   <text x="195" y="779" class="label" text-anchor="middle" fill="#ffffff">Next exercise  →</text>

@@ -2,47 +2,47 @@
   <title id="title">WorkoutApp workout editor mockup</title>
   <desc id="desc">A mobile workout editor showing the workout name, repeated weekdays, ordered exercises, and an add exercise action.</desc>
   <style>
-    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #171821; }
-    .muted { fill: #777985; }
+    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #202124; }
+    .muted { fill: #6f737b; }
     .small { font-size: 13px; }
     .body { font-size: 15px; }
     .label { font-size: 14px; font-weight: 600; }
     .title { font-size: 25px; font-weight: 750; letter-spacing: -0.5px; }
   </style>
-  <rect width="390" height="844" fill="#f3f4f7"/>
-  <rect x="9" y="9" width="372" height="826" rx="28" fill="#ffffff"/>
-  <rect x="151" y="18" width="88" height="5" rx="3" fill="#d7d8df"/>
+  <rect width="390" height="844" fill="#eef0f2"/>
+  <rect x="9" y="9" width="372" height="826" rx="28" fill="#fbfbfc"/>
+  <rect x="151" y="18" width="88" height="5" rx="3" fill="#c9cbd0"/>
   <text x="31" y="61" class="small muted">9:41</text>
-  <text x="31" y="105" class="body" fill="#5b4bce">‹  Plans</text>
+  <text x="31" y="105" class="body" fill="#c43d3d">‹  Plans</text>
   <text x="31" y="146" class="title">Edit workout</text>
-  <text x="359" y="145" class="label" text-anchor="end" fill="#5b4bce">Save</text>
+  <text x="359" y="145" class="label" text-anchor="end" fill="#c43d3d">Save</text>
 
   <text x="31" y="190" class="small muted">WORKOUT NAME</text>
-  <rect x="25" y="203" width="340" height="52" rx="14" fill="#fafafd" stroke="#dcdce5"/>
+  <rect x="25" y="203" width="340" height="52" rx="14" fill="#f5f6f7" stroke="#d1d3d7"/>
   <text x="43" y="236" class="body">Upper Body</text>
 
   <text x="31" y="295" class="small muted">REPEAT ON</text>
   <g>
-    <rect x="25" y="309" width="43" height="38" rx="12" fill="#eeeafd"/><text x="46" y="334" class="small" text-anchor="middle" fill="#5b4bce">Mon</text>
+    <rect x="25" y="309" width="43" height="38" rx="12" fill="#f8e3e3"/><text x="46" y="334" class="small" text-anchor="middle" fill="#c43d3d">Mon</text>
     <rect x="76" y="309" width="43" height="38" rx="12" fill="#ffffff" stroke="#e3e3e9"/><text x="97" y="334" class="small muted" text-anchor="middle">Tue</text>
     <rect x="127" y="309" width="43" height="38" rx="12" fill="#ffffff" stroke="#e3e3e9"/><text x="148" y="334" class="small muted" text-anchor="middle">Wed</text>
-    <rect x="178" y="309" width="43" height="38" rx="12" fill="#eeeafd"/><text x="199" y="334" class="small" text-anchor="middle" fill="#5b4bce">Thu</text>
-    <rect x="229" y="309" width="43" height="38" rx="12" fill="#ffffff" stroke="#e3e3e9"/><text x="250" y="334" class="small muted" text-anchor="middle">Fri</text>
-    <rect x="280" y="309" width="43" height="38" rx="12" fill="#ffffff" stroke="#e3e3e9"/><text x="301" y="334" class="small muted" text-anchor="middle">Sat</text>
-    <rect x="331" y="309" width="34" height="38" rx="12" fill="#ffffff" stroke="#e3e3e9"/><text x="348" y="334" class="small muted" text-anchor="middle">Sun</text>
+    <rect x="178" y="309" width="43" height="38" rx="12" fill="#f8e3e3"/><text x="199" y="334" class="small" text-anchor="middle" fill="#c43d3d">Thu</text>
+    <rect x="229" y="309" width="43" height="38" rx="12" fill="#fbfbfc" stroke="#dfe0e4"/><text x="250" y="334" class="small muted" text-anchor="middle">Fri</text>
+    <rect x="280" y="309" width="43" height="38" rx="12" fill="#fbfbfc" stroke="#dfe0e4"/><text x="301" y="334" class="small muted" text-anchor="middle">Sat</text>
+    <rect x="331" y="309" width="34" height="38" rx="12" fill="#fbfbfc" stroke="#dfe0e4"/><text x="348" y="334" class="small muted" text-anchor="middle">Sun</text>
   </g>
 
   <text x="31" y="403" class="label">Exercises</text>
   <text x="359" y="403" class="small muted" text-anchor="end">drag to reorder</text>
   <g>
-    <rect x="25" y="421" width="340" height="70" rx="17" fill="#ffffff" stroke="#e8e8ee"/>
-    <text x="45" y="463" class="body" fill="#777985">01</text><text x="83" y="454" class="label">Bench Press</text><text x="83" y="475" class="small muted">3 sets × 8 reps  ·  135 lb</text><text x="341" y="464" class="title muted" text-anchor="middle">≡</text>
-    <rect x="25" y="503" width="340" height="70" rx="17" fill="#ffffff" stroke="#e8e8ee"/>
-    <text x="45" y="545" class="body" fill="#777985">02</text><text x="83" y="536" class="label">Dumbbell Row</text><text x="83" y="557" class="small muted">3 sets × 10 reps  ·  45 lb</text><text x="341" y="546" class="title muted" text-anchor="middle">≡</text>
-    <rect x="25" y="585" width="340" height="70" rx="17" fill="#ffffff" stroke="#e8e8ee"/>
-    <text x="45" y="627" class="body" fill="#777985">03</text><text x="83" y="618" class="label">Shoulder Press</text><text x="83" y="639" class="small muted">3 sets × 8 reps  ·  65 lb</text><text x="341" y="628" class="title muted" text-anchor="middle">≡</text>
+    <rect x="25" y="421" width="340" height="70" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
+    <text x="45" y="463" class="body" fill="#6f737b">01</text><text x="83" y="454" class="label">Bench Press</text><text x="83" y="475" class="small muted">3 sets × 8 reps  ·  135 lb</text><text x="341" y="464" class="title muted" text-anchor="middle">≡</text>
+    <rect x="25" y="503" width="340" height="70" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
+    <text x="45" y="545" class="body" fill="#6f737b">02</text><text x="83" y="536" class="label">Dumbbell Row</text><text x="83" y="557" class="small muted">3 sets × 10 reps  ·  45 lb</text><text x="341" y="546" class="title muted" text-anchor="middle">≡</text>
+    <rect x="25" y="585" width="340" height="70" rx="17" fill="#fbfbfc" stroke="#dedfe3"/>
+    <text x="45" y="627" class="body" fill="#6f737b">03</text><text x="83" y="618" class="label">Shoulder Press</text><text x="83" y="639" class="small muted">3 sets × 8 reps  ·  65 lb</text><text x="341" y="628" class="title muted" text-anchor="middle">≡</text>
   </g>
-  <rect x="25" y="681" width="340" height="50" rx="15" fill="#eeeafd"/>
-  <text x="195" y="713" class="label" text-anchor="middle" fill="#5b4bce">＋  Add exercise</text>
+  <rect x="25" y="681" width="340" height="50" rx="15" fill="#f8e3e3"/>
+  <text x="195" y="713" class="label" text-anchor="middle" fill="#c43d3d">＋  Add exercise</text>
   <text x="195" y="782" class="small muted" text-anchor="middle">5 exercises in this workout</text>
 </svg>
