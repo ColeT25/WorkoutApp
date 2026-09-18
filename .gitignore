@@ -4,6 +4,8 @@
 *.db
 *.db-shm
 *.db-wal
+*.jks
+*.keystore
 local.properties
 .idea/
 *.iml

@@ -21,11 +21,29 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Restore stable APK signing key
+        if: github.event_name == 'push'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.WORKOUTAPP_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.WORKOUTAPP_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.WORKOUTAPP_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.WORKOUTAPP_KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || { echo "Stable signing secrets are not configured" >&2; exit 1; }
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/workoutapp-signing.jks"
+          chmod 600 "$RUNNER_TEMP/workoutapp-signing.jks"
+          {
+            echo "WORKOUTAPP_KEYSTORE_PATH=$RUNNER_TEMP/workoutapp-signing.jks"
+            echo "WORKOUTAPP_KEYSTORE_PASSWORD=$STORE_PASSWORD"
+            echo "WORKOUTAPP_KEY_ALIAS=$KEY_ALIAS"
+            echo "WORKOUTAPP_KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+
       - name: Run JVM tests
         run: bash ./gradlew :core:test :workout-agent:test --no-daemon
 
       - name: Build debug APK
-        run: bash ./gradlew :app:assembleDebug --no-daemon
+        run: bash ./gradlew :app:assembleDebug --no-daemon -PversionCode=$((GITHUB_RUN_NUMBER + 1))
 
       - name: Run Android lint
         run: bash ./gradlew :app:lintDebug --no-daemon
