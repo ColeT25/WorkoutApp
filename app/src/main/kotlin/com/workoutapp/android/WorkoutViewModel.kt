@@ -63,12 +63,12 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
 
     fun createExercise(name: String, sets: Int, reps: Int, weightLb: Double, increaseLb: Double, decreaseLb: Double) = runAction {
         applicationCore.createExercise(name, sets, reps, weightLb, increaseLb, decreaseLb)
-        navigate(AppScreen.PLANS)
+        navigate(if (state.activeSession != null) AppScreen.ACTIVE_SESSION else AppScreen.PLANS)
     }
 
     fun updateExercise(id: String, name: String, sets: Int, reps: Int, weightLb: Double, increaseLb: Double, decreaseLb: Double) = runAction {
         applicationCore.updateExercise(id, name, sets, reps, weightLb, increaseLb, decreaseLb)
-        navigate(AppScreen.PLANS)
+        navigate(if (state.activeSession != null) AppScreen.ACTIVE_SESSION else AppScreen.PLANS)
     }
 
     fun createWorkout(name: String): String? {
@@ -106,8 +106,13 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
 
     fun setSessionNote(sessionId: String, note: String) = runAction { applicationCore.setSessionNote(sessionId, note) }
 
-    fun finishSession(sessionId: String) = runAction {
-        applicationCore.finishSession(sessionId)
+    fun finishSession(sessionId: String, note: String) = runAction {
+        applicationCore.finishSession(sessionId, note)
+        navigate(AppScreen.TODAY)
+    }
+
+    fun cancelSession(sessionId: String) = runAction {
+        applicationCore.cancelSession(sessionId)
         navigate(AppScreen.TODAY)
     }
 

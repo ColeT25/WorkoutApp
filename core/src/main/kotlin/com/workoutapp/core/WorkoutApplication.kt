@@ -20,7 +20,6 @@ class WorkoutApplication(
         increaseLb: Double,
         decreaseLb: Double,
     ): Exercise {
-        ensureNoActiveSession()
         validateExerciseValues(name, setCount, repCount, currentWeightLb, increaseLb, decreaseLb)
         if (repository.listExercises(includeArchived = true).any { it.name.equals(name.trim(), ignoreCase = true) }) {
             throw WorkoutException("duplicate_exercise", "An exercise with this name already exists")
@@ -45,7 +44,6 @@ class WorkoutApplication(
         increaseLb: Double,
         decreaseLb: Double,
     ): Exercise {
-        ensureNoActiveSession()
         val existing = requireExercise(id)
         validateExerciseValues(name, setCount, repCount, currentWeightLb, increaseLb, decreaseLb)
         if (repository.listExercises(includeArchived = true).any {
@@ -65,7 +63,6 @@ class WorkoutApplication(
     }
 
     fun archiveExercise(id: String): Exercise {
-        ensureNoActiveSession()
         val exercise = requireExercise(id)
         if (repository.listWorkouts().any { workout -> workout.exercises.any { it.exerciseId == id } }) {
             throw WorkoutException("exercise_in_use", "Remove the exercise from active workouts before archiving it")
@@ -226,10 +223,12 @@ class WorkoutApplication(
         return session.copy(note = note).also(repository::updateSession)
     }
 
-    fun finishSession(sessionId: String): WorkoutSession = repository.transaction {
+    fun finishSession(sessionId: String, note: String? = null): WorkoutSession = repository.transaction {
         val session = repository.getSession(sessionId)
             ?: throw WorkoutException("missing_session", "Session not found")
-        if (session.status == SessionStatus.COMPLETED) return@transaction session
+        if (session.status == SessionStatus.COMPLETED || session.status == SessionStatus.CANCELLED) {
+            return@transaction session
+        }
         val incomplete = session.exercises.filter { it.outcome == null }
         if (incomplete.isNotEmpty()) {
             throw WorkoutException("incomplete_session", "Every exercise must have an outcome before finishing")
@@ -243,9 +242,25 @@ class WorkoutApplication(
             }
             repository.updateExercise(exercise.copy(currentWeightLb = (exercise.currentWeightLb + adjustment).coerceAtLeast(0.0)))
         }
-        val completed = session.copy(status = SessionStatus.COMPLETED, completedAt = clock.now())
+        val completed = session.copy(
+            status = SessionStatus.COMPLETED,
+            completedAt = clock.now(),
+            note = note ?: session.note,
+        )
         repository.updateSession(completed)
         completed
+    }
+
+    fun cancelSession(sessionId: String): WorkoutSession = repository.transaction {
+        val session = repository.getSession(sessionId)
+            ?: throw WorkoutException("missing_session", "Session not found")
+        if (session.status == SessionStatus.CANCELLED) return@transaction session
+        if (session.status == SessionStatus.COMPLETED) {
+            throw WorkoutException("completed_session", "Completed sessions cannot be cancelled")
+        }
+        val cancelled = session.copy(status = SessionStatus.CANCELLED)
+        repository.updateSession(cancelled)
+        cancelled
     }
 
     fun getTodayWorkouts(day: DayOfWeek): List<Workout> = repository.listWorkouts()
@@ -296,7 +311,7 @@ class WorkoutApplication(
         val session = repository.getSession(id)
             ?: throw WorkoutException("missing_session", "Session not found: $id")
         if (session.status != SessionStatus.ACTIVE) {
-            throw WorkoutException("completed_session", "Completed sessions cannot be changed")
+            throw WorkoutException("inactive_session", "Only an active session can be changed")
         }
         return session
     }

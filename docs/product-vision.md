@@ -39,6 +39,8 @@ Users can:
 
 The same workout can be scheduled on multiple days.
 
+Users can also start any workout one time from the Plans screen without changing its weekday schedule.
+
 ### Workout sessions
 
 Starting a scheduled workout creates a workout session for that date. The session records the exercise results and notes without changing the historical record of earlier sessions.
@@ -54,6 +56,10 @@ The user can also record notes for the workout session as a whole.
 
 The app should track which workouts were completed on each calendar day and provide a history of past sessions.
 
+An active workout can be cancelled. Cancellation does not apply progression and does not appear as a completed workout in history.
+
+Exercise settings may be edited while a workout is active. The active session uses the exercise snapshot captured at start, so those edits affect future workouts rather than changing what is currently being logged.
+
 ## Progressive overload rules
 
 Each exercise is adjusted at most once per workout session:
@@ -65,6 +71,8 @@ Each exercise is adjusted at most once per workout session:
 The increase and decrease amounts are independent settings. Either amount may be zero. Weight must not be reduced below zero.
 
 The adjustment should happen when the session is saved or completed, not once per set.
+
+Workout notes are saved when the session is finished. Cancelling a workout discards its unsaved workout note.
 
 ## Temporary substitutions
 

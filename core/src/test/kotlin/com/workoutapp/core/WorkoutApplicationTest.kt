@@ -103,14 +103,43 @@ class WorkoutApplicationTest {
     }
 
     @Test
-    fun `plan edits are blocked during active session and duplicate exercises are rejected`() {
-        val exercise = app.createExercise("Press", 3, 5, 50.0, 0.0, 0.0)
+    fun `exercise edits are allowed during active session but snapshots stay stable`() {
+        val exercise = app.createExercise("Press", 3, 5, 50.0, 5.0, 2.5)
         val workout = app.createWorkout("Push")
         app.addExerciseToWorkout(workout.id, exercise.id)
         assertFailsWith<WorkoutException> { app.addExerciseToWorkout(workout.id, exercise.id) }
         val session = app.startSession(workout.id)
         assertTrue(session.status == SessionStatus.ACTIVE)
         assertFailsWith<WorkoutException> { app.updateWorkout(workout.id, "Renamed") }
+        app.updateExercise(exercise.id, "Press edited", 4, 10, 55.0, 9.0, 8.0)
+
+        val snapshot = app.getSession(session.id)!!.exercises.single()
+        assertEquals("Press", snapshot.performedExerciseName)
+        assertEquals(3, snapshot.performedSetCount)
+        assertEquals(5, snapshot.performedRepCount)
+        assertEquals(50.0, snapshot.performedWeightLb)
+        assertEquals(5.0, snapshot.performedIncreaseLb)
+        app.recordExerciseOutcome(session.id, exercise.id, ExerciseOutcome.COMPLETED)
+        val completed = app.finishSession(session.id, "Saved at finish")
+        assertEquals("Saved at finish", completed.note)
+        assertEquals(60.0, repository.exercises.getValue(exercise.id).currentWeightLb)
+    }
+
+    @Test
+    fun `cancelling active session applies no progression and clears active state`() {
+        val exercise = app.createExercise("Cancel Press", 3, 5, 100.0, 5.0, 5.0)
+        val workout = app.createWorkout("Cancel Test")
+        app.addExerciseToWorkout(workout.id, exercise.id)
+        val session = app.startSession(workout.id)
+
+        val cancelled = app.cancelSession(session.id)
+
+        assertEquals(SessionStatus.CANCELLED, cancelled.status)
+        assertEquals(null, app.activeSession())
+        assertTrue(app.history().isEmpty())
+        assertEquals(100.0, repository.exercises.getValue(exercise.id).currentWeightLb)
+        assertEquals(SessionStatus.CANCELLED, app.cancelSession(session.id).status)
+        app.updateWorkout(workout.id, "Renamed after cancel")
     }
 
     @Test

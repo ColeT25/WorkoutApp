@@ -105,7 +105,11 @@ private fun WorkoutApp(viewModel: WorkoutViewModel) {
         AppScreen.TODAY -> MainScaffold(viewModel, AppScreen.TODAY, snackbarHostState) { TodayScreen(state, viewModel) }
         AppScreen.PLANS -> MainScaffold(viewModel, AppScreen.PLANS, snackbarHostState) { PlansScreen(state, viewModel) }
         AppScreen.HISTORY -> MainScaffold(viewModel, AppScreen.HISTORY, snackbarHostState) { HistoryScreen(state) }
-        AppScreen.EXERCISE_FORM -> FormScaffold(snackbarHostState, "Exercise", onBack = { viewModel.navigate(AppScreen.PLANS) }) {
+        AppScreen.EXERCISE_FORM -> FormScaffold(
+            snackbarHostState,
+            "Exercise",
+            onBack = { viewModel.navigate(if (state.activeSession != null) AppScreen.ACTIVE_SESSION else AppScreen.PLANS) },
+        ) {
             ExerciseFormScreen(state, viewModel)
         }
         AppScreen.WORKOUT_FORM -> FormScaffold(snackbarHostState, "Workout", onBack = { viewModel.navigate(AppScreen.PLANS) }) {
@@ -293,6 +297,7 @@ private fun WorkoutStartDialog(
 
 @Composable
 private fun PlansScreen(state: WorkoutUiState, viewModel: WorkoutViewModel) {
+    var workoutToStart by remember { mutableStateOf<Workout?>(null) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(20.dp),
@@ -315,13 +320,26 @@ private fun PlansScreen(state: WorkoutUiState, viewModel: WorkoutViewModel) {
             item { EmptyState("No workouts yet.", "Use the calendar button to create one.") }
         } else {
             items(state.workouts, key = { it.id }) { workout ->
-                Card(Modifier.fillMaxWidth().clickable { viewModel.navigate(AppScreen.WORKOUT_FORM, workoutId = workout.id) }) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(workout.name, fontWeight = FontWeight.Bold)
-                            Text("${workout.exercises.size} exercises  ·  ${workout.scheduledDays.displayDays()}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(workout.name, fontWeight = FontWeight.Bold)
+                                Text("${workout.exercises.size} exercises  ·  ${workout.scheduledDays.displayDays()}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            IconButton(onClick = { viewModel.navigate(AppScreen.WORKOUT_FORM, workoutId = workout.id) }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit workout", tint = MaterialTheme.colorScheme.primary)
+                            }
                         }
-                        Icon(Icons.Default.Edit, contentDescription = "Edit workout", tint = MaterialTheme.colorScheme.primary)
+                        Button(
+                            onClick = { workoutToStart = workout },
+                            enabled = state.activeSession == null,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(Icons.Default.PlayArrow, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Start once")
+                        }
                     }
                 }
             }
@@ -342,6 +360,16 @@ private fun PlansScreen(state: WorkoutUiState, viewModel: WorkoutViewModel) {
                 }
             }
         }
+    }
+    workoutToStart?.let { workout ->
+        WorkoutStartDialog(
+            workout = workout,
+            exercises = state.exercises,
+            onDismiss = { workoutToStart = null },
+            onStart = { substitutions ->
+                if (viewModel.startSession(workout.id, substitutions)) workoutToStart = null
+            },
+        )
     }
 }
 
@@ -540,6 +568,7 @@ private fun WorkoutFormScreen(state: WorkoutUiState, viewModel: WorkoutViewModel
 private fun ActiveSessionScreen(state: WorkoutUiState, viewModel: WorkoutViewModel) {
     val session = state.activeSession ?: return
     var sessionNote by remember(session.id) { mutableStateOf(session.note) }
+    var showCancelConfirmation by remember(session.id) { mutableStateOf(false) }
 
     FormColumn {
         Text(session.workoutName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
@@ -547,21 +576,38 @@ private fun ActiveSessionScreen(state: WorkoutUiState, viewModel: WorkoutViewMod
         session.exercises.sortedBy { it.position }.forEach { entry ->
             SessionExerciseCard(
                 entry = entry,
+                onEdit = { viewModel.navigate(AppScreen.EXERCISE_FORM, exerciseId = entry.performedExerciseId) },
                 onMark = { outcome, note -> viewModel.markExercise(session.id, entry.plannedExerciseId, outcome, note) },
             )
         }
         OutlinedTextField(sessionNote, { sessionNote = it }, label = { Text("Workout notes") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
-        OutlinedButton(onClick = { viewModel.setSessionNote(session.id, sessionNote) }, modifier = Modifier.fillMaxWidth()) { Text("Save workout note") }
-        Button(onClick = { viewModel.finishSession(session.id) }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { viewModel.finishSession(session.id, sessionNote) }, modifier = Modifier.fillMaxWidth()) {
             Text("Finish workout")
+        }
+        OutlinedButton(onClick = { showCancelConfirmation = true }, modifier = Modifier.fillMaxWidth()) {
+            Text("Cancel workout")
         }
     }
 
+    if (showCancelConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showCancelConfirmation = false },
+            title = { Text("Cancel workout?") },
+            text = { Text("Your exercise results and workout note will be discarded. No weights will change.") },
+            dismissButton = { TextButton(onClick = { showCancelConfirmation = false }) { Text("Keep working") } },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (viewModel.cancelSession(session.id)) showCancelConfirmation = false
+                }) { Text("Cancel workout") }
+            },
+        )
+    }
 }
 
 @Composable
 private fun SessionExerciseCard(
     entry: SessionExercise,
+    onEdit: () -> Unit,
     onMark: (ExerciseOutcome, String) -> Unit,
 ) {
     var note by remember(entry.id) { mutableStateOf(entry.note) }
@@ -574,6 +620,9 @@ private fun SessionExerciseCard(
                         Text("Planned: ${entry.plannedExerciseName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text("${entry.performedSetCount} sets × ${entry.performedRepCount} reps  ·  ${entry.performedWeightLb.prettyLb()} lb", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit exercise")
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

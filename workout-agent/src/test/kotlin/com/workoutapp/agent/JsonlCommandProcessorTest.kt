@@ -46,7 +46,7 @@ class JsonlCommandProcessorTest {
                 {"op":"mark_exercise","sessionId":"$sessionId","plannedExerciseId":"$exerciseId","outcome":"completed","note":"Felt strong"}
             """)
             objectResult(processor, """
-                {"op":"set_session_note","sessionId":"$sessionId","note":"Good session"}
+                {"op":"update_exercise","id":"$exerciseId","name":"Bench Press edited","sets":4,"reps":10,"weightLb":110,"increaseLb":9,"decreaseLb":8}
             """)
         }
 
@@ -54,16 +54,20 @@ class JsonlCommandProcessorTest {
             val processor = JsonlCommandProcessor(com.workoutapp.core.WorkoutApplication(com.workoutapp.storage.SqlWorkoutRepository(executor)))
             val resumed = objectResult(processor, """{"op":"get_session","sessionId":"$sessionId"}""")
             assertEquals("ACTIVE", resumed.string("status"))
-            assertEquals("Good session", resumed.string("note"))
+            assertEquals("", resumed.string("note"))
             assertEquals("Felt strong", resumed.elements("exercises")[0].jsonObject.string("note"))
+            assertEquals("Bench Press", resumed.elements("exercises")[0].jsonObject.string("performedExerciseName"))
+            assertEquals(100.0, resumed.elements("exercises")[0].jsonObject.double("performedWeightLb"))
+            assertEquals(5.0, resumed.elements("exercises")[0].jsonObject.double("performedIncreaseLb"))
 
-            val completed = objectResult(processor, """{"op":"finish_session","sessionId":"$sessionId"}""")
+            val completed = objectResult(processor, """{"op":"finish_session","sessionId":"$sessionId","note":"Saved at finish"}""")
             assertEquals("COMPLETED", completed.string("status"))
+            assertEquals("Saved at finish", completed.string("note"))
             val secondFinish = objectResult(processor, """{"op":"finish_session","sessionId":"$sessionId"}""")
             assertEquals(completed.string("completedAt"), secondFinish.string("completedAt"))
 
             val exercise = arrayResult(processor, """{"op":"list_exercises"}""")[0].jsonObject
-            assertEquals(105.0, exercise.double("weightLb"))
+            assertEquals(115.0, exercise.double("weightLb"))
         }
 
         directory.toFile().deleteRecursively()
@@ -101,6 +105,28 @@ class JsonlCommandProcessorTest {
             assertEquals(52.5, substitute.double("weightLb"))
             val planned = exercises.first { it.jsonObject.string("id") == plannedId }.jsonObject
             assertEquals(80.0, planned.double("weightLb"))
+        }
+
+        directory.toFile().deleteRecursively()
+    }
+
+    @Test
+    fun `cancel session is available through JSONL and does not progress weight`() {
+        val directory = Files.createTempDirectory("workoutapp-cancel-test")
+        val database = directory.resolve("workout.db")
+
+        JdbcSqlExecutor(database).use { executor ->
+            val processor = JsonlCommandProcessor(com.workoutapp.core.WorkoutApplication(com.workoutapp.storage.SqlWorkoutRepository(executor)))
+            val exerciseId = objectResult(processor, """{"op":"create_exercise","name":"Cancel Press","sets":3,"reps":5,"weightLb":100,"increaseLb":5,"decreaseLb":5}""").string("id")
+            val workoutId = objectResult(processor, """{"op":"create_workout","name":"Cancel Day"}""").string("id")
+            objectResult(processor, """{"op":"add_exercise","workoutId":"$workoutId","exerciseId":"$exerciseId"}""")
+            val sessionId = objectResult(processor, """{"op":"start_session","workoutId":"$workoutId","date":"2026-09-18"}""").string("id")
+
+            val cancelled = objectResult(processor, """{"op":"cancel_session","sessionId":"$sessionId"}""")
+            assertEquals("CANCELLED", cancelled.string("status"))
+            assertEquals("CANCELLED", objectResult(processor, """{"op":"cancel_session","sessionId":"$sessionId"}""").string("status"))
+            assertEquals(100.0, arrayResult(processor, """{"op":"list_exercises"}""")[0].jsonObject.double("weightLb"))
+            assertEquals(null, processor.execute(json.parseToJsonElement("""{"op":"state"}""").jsonObject)["result"]!!.jsonObject["activeSession"])
         }
 
         directory.toFile().deleteRecursively()

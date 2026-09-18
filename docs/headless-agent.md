@@ -24,7 +24,7 @@ create_exercise, update_exercise, archive_exercise, list_exercises
 create_workout, update_workout, archive_workout, list_workouts
 add_exercise, remove_exercise, reorder_exercises, schedule_workout
 today, start_session, get_session, mark_exercise, set_session_note
-finish_session, history, state
+finish_session, cancel_session, history, state
 ```
 
 `start_session` accepts an optional `substitutions` object whose keys are planned exercise IDs and whose values are performed exercise IDs. These substitutions are validated and snapshotted when the session starts; they never modify the workout template.
@@ -58,8 +58,9 @@ Validation and domain failures are structured too:
 3. Assign one or more weekday numbers (`1` through `7`) or names (`MONDAY` through `SUNDAY`).
 4. Start a session with an explicit date and optional pre-start substitutions.
 5. Mark every exercise as `COMPLETED`, `TOO_HARD`, or `NOT_COMPLETED`, with optional notes.
-6. Finish the session.
-7. Inspect `state`, `history`, or `get_session` to verify snapshots and progression.
+6. Finish the session, optionally providing the final workout note in the finish_session command.
+7. Or cancel the session; cancellation applies no progression and is omitted from completed history.
+8. Inspect state, history, or get_session to verify snapshots and progression.
 
 The shared core rejects plan edits while any session is active, requires an outcome for every exercise, clamps weight at zero, and makes repeated `finish_session` calls safe.
 

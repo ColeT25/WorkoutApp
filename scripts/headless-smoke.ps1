@@ -44,9 +44,12 @@ try {
     [void](Send-Command "{`"op`":`"add_exercise`",`"workoutId`":`"$($workout.id)`",`"exerciseId`":`"$($exercise.id)`"}")
     $session = Send-Command "{`"op`":`"start_session`",`"workoutId`":`"$($workout.id)`",`"date`":`"2026-09-17`"}"
     [void](Send-Command "{`"op`":`"mark_exercise`",`"sessionId`":`"$($session.id)`",`"plannedExerciseId`":`"$($exercise.id)`",`"outcome`":`"COMPLETED`"}")
-    $finished = Send-Command "{`"op`":`"finish_session`",`"sessionId`":`"$($session.id)`"}"
+    $finished = Send-Command "{`"op`":`"finish_session`",`"sessionId`":`"$($session.id)`",`"note`":`"Saved by smoke`"}"
     if ($finished.status -ne "COMPLETED") {
         throw "Expected completed session, got $($finished.status)"
+    }
+    if ($finished.note -ne "Saved by smoke") {
+        throw "Expected finish-time workout note to be persisted"
     }
 
     $state = Send-Command '{"op":"state"}'

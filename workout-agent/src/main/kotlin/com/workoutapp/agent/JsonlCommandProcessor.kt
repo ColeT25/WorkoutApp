@@ -73,7 +73,11 @@ class JsonlCommandProcessor(
                 note = command.optionalString("note") ?: "",
             ).toJson()
             "set_session_note" -> application.setSessionNote(command.requiredString("sessionId"), command.optionalString("note") ?: "").toJson()
-            "finish_session" -> application.finishSession(command.requiredString("sessionId")).toJson()
+            "finish_session" -> application.finishSession(
+                sessionId = command.requiredString("sessionId"),
+                note = command.optionalString("note"),
+            ).toJson()
+            "cancel_session" -> application.cancelSession(command.requiredString("sessionId")).toJson()
             "history" -> buildJsonArray { application.history().forEach { add(it.toJson()) } }
             "state" -> buildJsonObject {
                 putJsonArray("exercises") { application.listExercises(includeArchived = true).forEach { add(it.toJson()) } }

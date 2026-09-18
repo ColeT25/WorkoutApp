@@ -84,7 +84,7 @@ Primary screens are:
 - Temporary exercise substitution.
 - Session history.
 
-Plan and exercise editing is disabled while a workout session is active. If the application is interrupted, the active session remains resumable.
+Workout structure, schedule, and workout-name editing are disabled while a workout session is active, but exercise settings remain editable. Active sessions use their start-time snapshots, so exercise edits affect future sessions only. A session can be cancelled without progression. If the application is interrupted, the active session remains resumable.
 
 ## Headless agent client
 
@@ -100,6 +100,7 @@ assign workout to weekday
 start session
 start session with optional substitutions
 mark exercise outcome
+cancel session
 finish session
 inspect current state
 inspect history
@@ -172,8 +173,11 @@ When a session is finalized:
 - Weight cannot fall below zero.
 - Each exercise receives at most one adjustment for that session.
 - Repeating finalization is safe and does not apply progression twice.
+- Cancelling an active session applies no progression and removes it from completed history.
 
 Finalization should save the session, its snapshots, and weight adjustments transactionally.
+
+The final workout note is supplied as part of finalization. There is no separate save step required by the Android UI.
 
 ## Temporary substitutions
 
