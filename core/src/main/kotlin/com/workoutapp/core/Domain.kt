@@ -2,6 +2,13 @@ package com.workoutapp.core
 
 import java.time.DayOfWeek
 
+const val DEFAULT_DURATION_SECONDS = 60
+
+enum class ExerciseTargetType {
+    REPS,
+    TIME,
+}
+
 data class Exercise(
     val id: String,
     val name: String,
@@ -10,6 +17,8 @@ data class Exercise(
     val currentWeightLb: Double,
     val increaseLb: Double,
     val decreaseLb: Double,
+    val targetType: ExerciseTargetType = ExerciseTargetType.REPS,
+    val durationSeconds: Int = DEFAULT_DURATION_SECONDS,
     val archived: Boolean = false,
 )
 
@@ -55,6 +64,11 @@ data class SessionExercise(
     val performedDecreaseLb: Double,
     val outcome: ExerciseOutcome? = null,
     val note: String = "",
+    val plannedTargetType: ExerciseTargetType = ExerciseTargetType.REPS,
+    val plannedDurationSeconds: Int = DEFAULT_DURATION_SECONDS,
+    val performedTargetType: ExerciseTargetType = ExerciseTargetType.REPS,
+    val performedDurationSeconds: Int = DEFAULT_DURATION_SECONDS,
+    val isAdHoc: Boolean = false,
 )
 
 data class WorkoutSession(

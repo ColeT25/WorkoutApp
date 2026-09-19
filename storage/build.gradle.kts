@@ -10,4 +10,5 @@ dependencies {
     implementation(project(":core"))
     testImplementation(libs.kotlin.test)
     testImplementation(libs.junit)
+    testRuntimeOnly(libs.sqlite.jdbc)
 }

@@ -160,6 +160,84 @@ class WorkoutApplicationTest {
     }
 
     @Test
+    fun `time target is snapshotted and completed progression still changes weight`() {
+        val exercise = app.createExercise(
+            name = "Plank",
+            setCount = 3,
+            repCount = 1,
+            currentWeightLb = 0.0,
+            increaseLb = 0.0,
+            decreaseLb = 0.0,
+            targetType = ExerciseTargetType.TIME,
+            durationSeconds = 45,
+        )
+        val workout = app.createWorkout("Core")
+        app.addExerciseToWorkout(workout.id, exercise.id)
+
+        val session = app.startSession(workout.id)
+        val entry = session.exercises.single()
+        assertEquals(ExerciseTargetType.TIME, entry.performedTargetType)
+        assertEquals(45, entry.performedDurationSeconds)
+        app.updateExercise(exercise.id, "Plank", 4, 1, 0.0, 0.0, 0.0, ExerciseTargetType.TIME, 60)
+        assertEquals(45, app.getSession(session.id)!!.exercises.single().performedDurationSeconds)
+
+        app.recordExerciseOutcome(session.id, exercise.id, ExerciseOutcome.COMPLETED)
+        app.finishSession(session.id)
+        assertEquals(0.0, repository.exercises.getValue(exercise.id).currentWeightLb)
+    }
+
+    @Test
+    fun `session-only additions work before and during a workout and can be removed`() {
+        val planned = app.createExercise("Planned", 3, 5, 50.0, 5.0, 5.0)
+        val preStart = app.createExercise("Pre-start add", 2, 10, 20.0, 2.0, 2.0)
+        val during = app.createExercise("During add", 4, 8, 30.0, 3.0, 3.0)
+        val workout = app.createWorkout("Flexible")
+        app.addExerciseToWorkout(workout.id, planned.id)
+
+        val session = app.startSession(workout.id, additionalExerciseIds = listOf(preStart.id))
+        assertEquals(2, session.exercises.size)
+        assertTrue(session.exercises.last().isAdHoc)
+        assertEquals(1, session.exercises.last().position)
+        assertFailsWith<WorkoutException> { app.startSession(workout.id, additionalExerciseIds = listOf(planned.id)) }
+
+        val withDuring = app.addExerciseToSession(session.id, during.id)
+        assertEquals(3, withDuring.exercises.size)
+        assertTrue(withDuring.exercises.last().isAdHoc)
+        assertFailsWith<WorkoutException> { app.addExerciseToSession(session.id, during.id) }
+        app.updateExercise(during.id, "During add edited", 1, 1, 99.0, 9.0, 9.0, ExerciseTargetType.TIME, 90)
+        val duringSnapshot = app.getSession(session.id)!!.exercises.last()
+        assertEquals("During add", duringSnapshot.performedExerciseName)
+        assertEquals(30.0, duringSnapshot.performedWeightLb)
+        assertEquals(ExerciseTargetType.REPS, duringSnapshot.performedTargetType)
+        assertEquals(8, duringSnapshot.performedRepCount)
+        val afterRemove = app.removeExerciseFromSession(session.id, withDuring.exercises.last().id)
+        assertEquals(2, afterRemove.exercises.size)
+        assertFailsWith<WorkoutException> { app.removeExerciseFromSession(session.id, afterRemove.exercises.first().id) }
+
+        afterRemove.exercises.forEach { app.recordExerciseOutcome(session.id, it.plannedExerciseId, ExerciseOutcome.COMPLETED) }
+        val completed = app.finishSession(session.id)
+        assertEquals(2, completed.exercises.size)
+        assertEquals(55.0, repository.exercises.getValue(planned.id).currentWeightLb)
+        assertEquals(22.0, repository.exercises.getValue(preStart.id).currentWeightLb)
+        assertEquals(99.0, repository.exercises.getValue(during.id).currentWeightLb)
+        assertTrue(app.history().single().exercises.all { it.isAdHoc || it.performedExerciseId == planned.id })
+    }
+
+    @Test
+    fun `invalid time duration and duplicate active additions are rejected`() {
+        assertFailsWith<WorkoutException> {
+            app.createExercise("Invalid time", 1, 1, 0.0, 0.0, 0.0, ExerciseTargetType.TIME, 0)
+        }
+        val planned = app.createExercise("Planned", 1, 1, 0.0, 0.0, 0.0)
+        val added = app.createExercise("Added", 1, 1, 0.0, 0.0, 0.0)
+        val workout = app.createWorkout("Duplicate")
+        app.addExerciseToWorkout(workout.id, planned.id)
+        val session = app.startSession(workout.id)
+        app.addExerciseToSession(session.id, added.id)
+        assertFailsWith<WorkoutException> { app.addExerciseToSession(session.id, added.id) }
+    }
+
+    @Test
     fun `referenced exercise cannot be archived until its active workout is archived`() {
         val exercise = app.createExercise("Referenced", 3, 5, 50.0, 0.0, 0.0)
         val workout = app.createWorkout("Reference")

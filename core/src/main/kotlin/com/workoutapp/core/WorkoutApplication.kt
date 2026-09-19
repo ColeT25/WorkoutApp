@@ -19,8 +19,10 @@ class WorkoutApplication(
         currentWeightLb: Double,
         increaseLb: Double,
         decreaseLb: Double,
+        targetType: ExerciseTargetType = ExerciseTargetType.REPS,
+        durationSeconds: Int = DEFAULT_DURATION_SECONDS,
     ): Exercise {
-        validateExerciseValues(name, setCount, repCount, currentWeightLb, increaseLb, decreaseLb)
+        validateExerciseValues(name, setCount, repCount, currentWeightLb, increaseLb, decreaseLb, durationSeconds)
         if (repository.listExercises(includeArchived = true).any { it.name.equals(name.trim(), ignoreCase = true) }) {
             throw WorkoutException("duplicate_exercise", "An exercise with this name already exists")
         }
@@ -32,6 +34,8 @@ class WorkoutApplication(
             currentWeightLb = currentWeightLb,
             increaseLb = increaseLb,
             decreaseLb = decreaseLb,
+            targetType = targetType,
+            durationSeconds = durationSeconds,
         ).also(repository::insertExercise)
     }
 
@@ -43,9 +47,11 @@ class WorkoutApplication(
         currentWeightLb: Double,
         increaseLb: Double,
         decreaseLb: Double,
+        targetType: ExerciseTargetType = ExerciseTargetType.REPS,
+        durationSeconds: Int = DEFAULT_DURATION_SECONDS,
     ): Exercise {
         val existing = requireExercise(id)
-        validateExerciseValues(name, setCount, repCount, currentWeightLb, increaseLb, decreaseLb)
+        validateExerciseValues(name, setCount, repCount, currentWeightLb, increaseLb, decreaseLb, durationSeconds)
         if (repository.listExercises(includeArchived = true).any {
                 it.id != id && it.name.equals(name.trim(), ignoreCase = true)
             }
@@ -59,6 +65,8 @@ class WorkoutApplication(
             currentWeightLb = currentWeightLb,
             increaseLb = increaseLb,
             decreaseLb = decreaseLb,
+            targetType = targetType,
+            durationSeconds = durationSeconds,
         ).also(repository::updateExercise)
     }
 
@@ -149,6 +157,7 @@ class WorkoutApplication(
         workoutId: String,
         localDate: String = clock.today(),
         substitutions: Map<String, String> = emptyMap(),
+        additionalExerciseIds: List<String> = emptyList(),
     ): WorkoutSession {
         ensureNoActiveSession()
         val workout = requireWorkout(workoutId)
@@ -161,6 +170,12 @@ class WorkoutApplication(
         val performedIds = workout.exercises.map { it.exerciseId }.map { substitutions[it] ?: it }
         if (performedIds.size != performedIds.toSet().size) {
             throw WorkoutException("duplicate_substitution", "An exercise cannot be performed more than once in a workout")
+        }
+        if (additionalExerciseIds.size != additionalExerciseIds.toSet().size) {
+            throw WorkoutException("duplicate_session_exercise", "An exercise can only appear once in a session")
+        }
+        if (additionalExerciseIds.any { it in plannedIds || it in performedIds }) {
+            throw WorkoutException("duplicate_session_exercise", "An exercise can only appear once in a session")
         }
         val sessionExercises = workout.exercises.sortedBy { it.position }.mapIndexed { index, ref ->
             val planned = requireExercise(ref.exerciseId)
@@ -186,6 +201,37 @@ class WorkoutApplication(
                 performedWeightLb = performed.currentWeightLb,
                 performedIncreaseLb = performed.increaseLb,
                 performedDecreaseLb = performed.decreaseLb,
+                plannedTargetType = planned.targetType,
+                plannedDurationSeconds = planned.durationSeconds,
+                performedTargetType = performed.targetType,
+                performedDurationSeconds = performed.durationSeconds,
+            )
+        }
+        val additionalSessionExercises = additionalExerciseIds.mapIndexed { offset, exerciseId ->
+            val exercise = requireExercise(exerciseId)
+            if (exercise.archived) {
+                throw WorkoutException("archived_exercise", "Archived exercises cannot be added to a session")
+            }
+            SessionExercise(
+                id = ids.nextId(),
+                position = sessionExercises.size + offset,
+                plannedExerciseId = exercise.id,
+                plannedExerciseName = exercise.name,
+                plannedSetCount = exercise.setCount,
+                plannedRepCount = exercise.repCount,
+                plannedWeightLb = exercise.currentWeightLb,
+                performedExerciseId = exercise.id,
+                performedExerciseName = exercise.name,
+                performedSetCount = exercise.setCount,
+                performedRepCount = exercise.repCount,
+                performedWeightLb = exercise.currentWeightLb,
+                performedIncreaseLb = exercise.increaseLb,
+                performedDecreaseLb = exercise.decreaseLb,
+                plannedTargetType = exercise.targetType,
+                plannedDurationSeconds = exercise.durationSeconds,
+                performedTargetType = exercise.targetType,
+                performedDurationSeconds = exercise.durationSeconds,
+                isAdHoc = true,
             )
         }
         return WorkoutSession(
@@ -194,7 +240,7 @@ class WorkoutApplication(
             workoutName = workout.name,
             localDate = localDate,
             startedAt = clock.now(),
-            exercises = sessionExercises,
+            exercises = sessionExercises + additionalSessionExercises,
         ).also(repository::insertSession)
     }
 
@@ -216,6 +262,56 @@ class WorkoutApplication(
         )
         repository.updateSession(updated)
         return updated
+    }
+
+    fun addExerciseToSession(sessionId: String, exerciseId: String): WorkoutSession = repository.transaction {
+        val session = requireActiveSession(sessionId)
+        val exercise = requireExercise(exerciseId)
+        if (exercise.archived) {
+            throw WorkoutException("archived_exercise", "Archived exercises cannot be added to a session")
+        }
+        if (session.exercises.any { it.plannedExerciseId == exerciseId || it.performedExerciseId == exerciseId }) {
+            throw WorkoutException("duplicate_session_exercise", "An exercise can only appear once in a session")
+        }
+        val entry = SessionExercise(
+            id = ids.nextId(),
+            position = session.exercises.size,
+            plannedExerciseId = exercise.id,
+            plannedExerciseName = exercise.name,
+            plannedSetCount = exercise.setCount,
+            plannedRepCount = exercise.repCount,
+            plannedWeightLb = exercise.currentWeightLb,
+            performedExerciseId = exercise.id,
+            performedExerciseName = exercise.name,
+            performedSetCount = exercise.setCount,
+            performedRepCount = exercise.repCount,
+            performedWeightLb = exercise.currentWeightLb,
+            performedIncreaseLb = exercise.increaseLb,
+            performedDecreaseLb = exercise.decreaseLb,
+            plannedTargetType = exercise.targetType,
+            plannedDurationSeconds = exercise.durationSeconds,
+            performedTargetType = exercise.targetType,
+            performedDurationSeconds = exercise.durationSeconds,
+            isAdHoc = true,
+        )
+        val updated = session.copy(exercises = session.exercises + entry)
+        repository.updateSession(updated)
+        updated
+    }
+
+    fun removeExerciseFromSession(sessionId: String, sessionExerciseId: String): WorkoutSession = repository.transaction {
+        val session = requireActiveSession(sessionId)
+        val entry = session.exercises.firstOrNull { it.id == sessionExerciseId }
+            ?: throw WorkoutException("missing_session_exercise", "The exercise is not in this session")
+        if (!entry.isAdHoc) {
+            throw WorkoutException("planned_session_exercise", "Planned exercises cannot be removed from a session")
+        }
+        val updated = session.copy(
+            exercises = session.exercises.filterNot { it.id == sessionExerciseId }
+                .mapIndexed { index, exercise -> exercise.copy(position = index) },
+        )
+        repository.updateSession(updated)
+        updated
     }
 
     fun setSessionNote(sessionId: String, note: String): WorkoutSession {
@@ -286,6 +382,7 @@ class WorkoutApplication(
         currentWeightLb: Double,
         increaseLb: Double,
         decreaseLb: Double,
+        durationSeconds: Int,
     ) {
         if (name.isBlank()) throw WorkoutException("invalid_exercise", "Exercise name is required")
         if (setCount < 1) throw WorkoutException("invalid_exercise", "Set count must be at least 1")
@@ -293,6 +390,7 @@ class WorkoutApplication(
         if (currentWeightLb < 0 || increaseLb < 0 || decreaseLb < 0) {
             throw WorkoutException("invalid_exercise", "Weights and progression amounts cannot be negative")
         }
+        if (durationSeconds < 1) throw WorkoutException("invalid_exercise", "Duration must be at least 1 second")
     }
 
     private fun ensureNoActiveSession() {

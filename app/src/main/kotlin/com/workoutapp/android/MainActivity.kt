@@ -70,6 +70,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.workoutapp.core.Exercise
 import com.workoutapp.core.ExerciseOutcome
+import com.workoutapp.core.ExerciseTargetType
 import com.workoutapp.core.SessionExercise
 import com.workoutapp.core.Workout
 import com.workoutapp.core.WorkoutSession
@@ -223,8 +224,8 @@ private fun TodayScreen(state: WorkoutUiState, viewModel: WorkoutViewModel) {
             workout = workout,
             exercises = state.exercises,
             onDismiss = { workoutToStart = null },
-            onStart = { substitutions ->
-                if (viewModel.startSession(workout.id, substitutions)) workoutToStart = null
+            onStart = { substitutions, additions ->
+                if (viewModel.startSession(workout.id, substitutions, additions)) workoutToStart = null
             },
         )
     }
@@ -235,52 +236,61 @@ private fun WorkoutStartDialog(
     workout: Workout,
     exercises: List<Exercise>,
     onDismiss: () -> Unit,
-    onStart: (Map<String, String>) -> Unit,
+    onStart: (Map<String, String>, List<String>) -> Unit,
 ) {
     val exerciseById = exercises.associateBy { it.id }
     var substitutions by remember(workout.id) { mutableStateOf(emptyMap<String, String>()) }
+    var additionalIds by remember(workout.id) { mutableStateOf(emptyList<String>()) }
     var choosingFor by remember(workout.id) { mutableStateOf<String?>(null) }
+    var choosingAdditional by remember(workout.id) { mutableStateOf(false) }
 
-    choosingFor?.let { plannedId ->
-        val usedIds = workout.exercises.map { substitutions[it.exerciseId] ?: it.exerciseId }.toSet()
-        val selectedId = substitutions[plannedId] ?: plannedId
+    if (choosingFor != null || choosingAdditional) {
+        val plannedId = choosingFor
+        val usedIds = workout.exercises.flatMap { listOf(it.exerciseId, substitutions[it.exerciseId] ?: it.exerciseId) }.toSet() + additionalIds
+        val selectedId = plannedId?.let { substitutions[it] ?: it }
         val options = exercises.filter { !it.archived && (it.id == selectedId || it.id !in usedIds) }
         AlertDialog(
-            onDismissRequest = { choosingFor = null },
-            title = { Text("Choose substitute") },
+            onDismissRequest = { choosingFor = null; choosingAdditional = false },
+            title = { Text(if (choosingAdditional) "Add exercise" else "Choose substitute") },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("This replacement applies to this workout only.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        if (choosingAdditional) "This exercise applies to this workout only." else "This replacement applies to this workout only.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     options.forEach { exercise ->
                         TextButton(
                             onClick = {
-                                substitutions = substitutions + (plannedId to exercise.id)
+                                if (plannedId != null) substitutions = substitutions + (plannedId to exercise.id)
+                                else additionalIds = additionalIds + exercise.id
                                 choosingFor = null
+                                choosingAdditional = false
                             },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Column(Modifier.fillMaxWidth()) {
                                 Text(exercise.name, fontWeight = FontWeight.SemiBold)
-                                Text("${exercise.setCount} sets × ${exercise.repCount} reps  ·  ${exercise.currentWeightLb.prettyLb()} lb", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(exercise.targetSummary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { choosingFor = null }) { Text("Back") } },
+            confirmButton = { TextButton(onClick = { choosingFor = null; choosingAdditional = false }) { Text("Back") } },
         )
-    } ?: AlertDialog(
+    } else AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Review ${workout.name}") },
+        title = { Text("Customize ${workout.name}") },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Optional substitutions", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Substitutions and one-time additions", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 workout.exercises.sortedBy { it.position }.forEach { ref ->
                     val planned = exerciseById[ref.exerciseId]
                     val performed = exerciseById[substitutions[ref.exerciseId] ?: ref.exerciseId]
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(planned?.name ?: "Unavailable exercise", fontWeight = FontWeight.SemiBold)
+                            performed?.let { Text(it.targetSummary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             if (performed != null && performed.id != planned?.id) {
                                 Text("Will perform: ${performed.name}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                             }
@@ -288,10 +298,25 @@ private fun WorkoutStartDialog(
                         TextButton(onClick = { choosingFor = ref.exerciseId }) { Text("Substitute") }
                     }
                 }
+                if (additionalIds.isNotEmpty()) {
+                    Text("Added for this session", fontWeight = FontWeight.SemiBold)
+                    additionalIds.forEach { id ->
+                        exerciseById[id]?.let { exercise ->
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(exercise.name, fontWeight = FontWeight.SemiBold)
+                                    Text(exercise.targetSummary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                TextButton(onClick = { additionalIds = additionalIds - id }) { Text("Remove") }
+                            }
+                        }
+                    }
+                }
+                OutlinedButton(onClick = { choosingAdditional = true }, modifier = Modifier.fillMaxWidth()) { Text("Add exercise") }
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-        confirmButton = { Button(onClick = { onStart(substitutions) }) { Text("Start workout") } },
+        confirmButton = { Button(onClick = { onStart(substitutions, additionalIds) }) { Text("Start workout") } },
     )
 }
 
@@ -353,7 +378,7 @@ private fun PlansScreen(state: WorkoutUiState, viewModel: WorkoutViewModel) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(exercise.name, fontWeight = FontWeight.Bold)
-                            Text("${exercise.setCount} sets × ${exercise.repCount} reps  ·  ${exercise.currentWeightLb.prettyLb()} lb", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(exercise.targetSummary(), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Icon(Icons.Default.Edit, contentDescription = "Edit exercise", tint = MaterialTheme.colorScheme.primary)
                     }
@@ -366,8 +391,8 @@ private fun PlansScreen(state: WorkoutUiState, viewModel: WorkoutViewModel) {
             workout = workout,
             exercises = state.exercises,
             onDismiss = { workoutToStart = null },
-            onStart = { substitutions ->
-                if (viewModel.startSession(workout.id, substitutions)) workoutToStart = null
+            onStart = { substitutions, additions ->
+                if (viewModel.startSession(workout.id, substitutions, additions)) workoutToStart = null
             },
         )
     }
@@ -423,7 +448,7 @@ private fun HistoryCard(session: WorkoutSession) {
             Text("${session.exercises.size} exercises", color = MaterialTheme.colorScheme.onSurfaceVariant)
             session.exercises.forEach { entry ->
                 val status = entry.outcome?.name?.lowercase()?.replace('_', ' ') ?: "unknown"
-                Text("${entry.performedExerciseName}  ·  ${entry.performedWeightLb.prettyLb()} lb  ·  $status", style = MaterialTheme.typography.bodySmall)
+                Text("${entry.performedExerciseName}  ·  ${entry.targetSummary()}  ·  $status", style = MaterialTheme.typography.bodySmall)
             }
             if (session.note.isNotBlank()) Text(session.note, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -436,6 +461,8 @@ private fun ExerciseFormScreen(state: WorkoutUiState, viewModel: WorkoutViewMode
     var name by remember(existing?.id) { mutableStateOf(existing?.name.orEmpty()) }
     var sets by remember(existing?.id) { mutableStateOf(existing?.setCount?.toString() ?: "3") }
     var reps by remember(existing?.id) { mutableStateOf(existing?.repCount?.toString() ?: "8") }
+    var seconds by remember(existing?.id) { mutableStateOf(existing?.durationSeconds?.toString() ?: "60") }
+    var targetType by remember(existing?.id) { mutableStateOf(existing?.targetType ?: ExerciseTargetType.REPS) }
     var weight by remember(existing?.id) { mutableStateOf(existing?.currentWeightLb?.prettyLb() ?: "0") }
     var increase by remember(existing?.id) { mutableStateOf(existing?.increaseLb?.prettyLb() ?: "0") }
     var decrease by remember(existing?.id) { mutableStateOf(existing?.decreaseLb?.prettyLb() ?: "0") }
@@ -444,9 +471,18 @@ private fun ExerciseFormScreen(state: WorkoutUiState, viewModel: WorkoutViewMode
         Text(if (existing == null) "New exercise" else "Edit exercise", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text("Settings are shared everywhere this exercise is used.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        Text("Target", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = targetType == ExerciseTargetType.REPS, onClick = { targetType = ExerciseTargetType.REPS }, label = { Text("Reps") })
+            FilterChip(selected = targetType == ExerciseTargetType.TIME, onClick = { targetType = ExerciseTargetType.TIME }, label = { Text("Time") })
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             NumberField("Sets", sets, { sets = it }, Modifier.weight(1f))
-            NumberField("Reps", reps, { reps = it }, Modifier.weight(1f))
+            if (targetType == ExerciseTargetType.REPS) {
+                NumberField("Reps", reps, { reps = it }, Modifier.weight(1f))
+            } else {
+                NumberField("Seconds per set", seconds, { seconds = it }, Modifier.weight(1f))
+            }
         }
         NumberField("Current weight (lb)", weight, { weight = it }, Modifier.fillMaxWidth())
         Text("Progressive overload", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -458,11 +494,12 @@ private fun ExerciseFormScreen(state: WorkoutUiState, viewModel: WorkoutViewMode
             onClick = {
                 val parsedSets = sets.toIntOrNull() ?: 0
                 val parsedReps = reps.toIntOrNull() ?: 0
+                val parsedSeconds = seconds.toIntOrNull() ?: 0
                 val parsedWeight = weight.toDoubleOrNull() ?: -1.0
                 val parsedIncrease = increase.toDoubleOrNull() ?: -1.0
                 val parsedDecrease = decrease.toDoubleOrNull() ?: -1.0
-                if (existing == null) viewModel.createExercise(name, parsedSets, parsedReps, parsedWeight, parsedIncrease, parsedDecrease)
-                else viewModel.updateExercise(existing.id, name, parsedSets, parsedReps, parsedWeight, parsedIncrease, parsedDecrease)
+                if (existing == null) viewModel.createExercise(name, parsedSets, parsedReps, parsedWeight, parsedIncrease, parsedDecrease, targetType, parsedSeconds)
+                else viewModel.updateExercise(existing.id, name, parsedSets, parsedReps, parsedWeight, parsedIncrease, parsedDecrease, targetType, parsedSeconds)
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -506,7 +543,7 @@ private fun WorkoutFormScreen(state: WorkoutUiState, viewModel: WorkoutViewModel
                     Row(Modifier.padding(start = 13.dp, end = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("${index + 1}. ${exercise?.name ?: "Archived exercise"}", fontWeight = FontWeight.SemiBold)
-                            exercise?.let { Text("${it.setCount} sets × ${it.repCount} reps  ·  ${it.currentWeightLb.prettyLb()} lb", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            exercise?.let { Text(it.targetSummary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
                         IconButton(onClick = { if (index > 0) selectedIds = selectedIds.swap(index, index - 1) }, enabled = index > 0) {
                             Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Move up")
@@ -530,7 +567,7 @@ private fun WorkoutFormScreen(state: WorkoutUiState, viewModel: WorkoutViewModel
                     Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column {
                             Text(exercise.name, fontWeight = FontWeight.SemiBold)
-                            Text("${exercise.setCount} sets × ${exercise.repCount} reps  ·  ${exercise.currentWeightLb.prettyLb()} lb", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(exercise.targetSummary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -569,6 +606,8 @@ private fun ActiveSessionScreen(state: WorkoutUiState, viewModel: WorkoutViewMod
     val session = state.activeSession ?: return
     var sessionNote by remember(session.id) { mutableStateOf(session.note) }
     var showCancelConfirmation by remember(session.id) { mutableStateOf(false) }
+    var showAddExercise by remember(session.id) { mutableStateOf(false) }
+    var exerciseToRemove by remember(session.id) { mutableStateOf<SessionExercise?>(null) }
 
     FormColumn {
         Text(session.workoutName, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
@@ -578,7 +617,13 @@ private fun ActiveSessionScreen(state: WorkoutUiState, viewModel: WorkoutViewMod
                 entry = entry,
                 onEdit = { viewModel.navigate(AppScreen.EXERCISE_FORM, exerciseId = entry.performedExerciseId) },
                 onMark = { outcome, note -> viewModel.markExercise(session.id, entry.plannedExerciseId, outcome, note) },
+                onRemove = { exerciseToRemove = entry },
             )
+        }
+        OutlinedButton(onClick = { showAddExercise = true }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(Modifier.width(6.dp))
+            Text("Add exercise")
         }
         OutlinedTextField(sessionNote, { sessionNote = it }, label = { Text("Workout notes") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
         Button(onClick = { viewModel.finishSession(session.id, sessionNote) }, modifier = Modifier.fillMaxWidth()) {
@@ -602,6 +647,65 @@ private fun ActiveSessionScreen(state: WorkoutUiState, viewModel: WorkoutViewMod
             },
         )
     }
+
+    if (showAddExercise) {
+        SessionExercisePickerDialog(
+            session = session,
+            exercises = state.exercises,
+            onDismiss = { showAddExercise = false },
+            onAdd = { exerciseId -> viewModel.addSessionExercise(session.id, exerciseId) },
+        )
+    }
+
+    exerciseToRemove?.let { entry ->
+        AlertDialog(
+            onDismissRequest = { exerciseToRemove = null },
+            title = { Text("Remove exercise?") },
+            text = { Text("${entry.performedExerciseName} will be removed from this workout only.") },
+            dismissButton = { TextButton(onClick = { exerciseToRemove = null }) { Text("Keep it") } },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (viewModel.removeSessionExercise(session.id, entry.id)) exerciseToRemove = null
+                }) { Text("Remove") }
+            },
+        )
+    }
+}
+
+@Composable
+private fun SessionExercisePickerDialog(
+    session: WorkoutSession,
+    exercises: List<Exercise>,
+    onDismiss: () -> Unit,
+    onAdd: (String) -> Boolean,
+) {
+    val usedIds = session.exercises.flatMap { listOf(it.plannedExerciseId, it.performedExerciseId) }.toSet()
+    val options = exercises.filter { !it.archived && it.id !in usedIds }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add exercise") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("This exercise applies to this workout only.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (options.isEmpty()) {
+                    Text("No other exercises are available.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    options.forEach { exercise ->
+                        TextButton(
+                            onClick = { if (onAdd(exercise.id)) onDismiss() },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(Modifier.fillMaxWidth()) {
+                                Text(exercise.name, fontWeight = FontWeight.SemiBold)
+                                Text(exercise.targetSummary(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
+    )
 }
 
 @Composable
@@ -609,6 +713,7 @@ private fun SessionExerciseCard(
     entry: SessionExercise,
     onEdit: () -> Unit,
     onMark: (ExerciseOutcome, String) -> Unit,
+    onRemove: () -> Unit,
 ) {
     var note by remember(entry.id) { mutableStateOf(entry.note) }
     Card(Modifier.fillMaxWidth()) {
@@ -619,7 +724,10 @@ private fun SessionExerciseCard(
                     if (entry.performedExerciseId != entry.plannedExerciseId) {
                         Text("Planned: ${entry.plannedExerciseName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text("${entry.performedSetCount} sets × ${entry.performedRepCount} reps  ·  ${entry.performedWeightLb.prettyLb()} lb", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (entry.isAdHoc) {
+                        Text("Added for this session", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                    Text(entry.targetSummary(), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit exercise")
@@ -631,6 +739,9 @@ private fun SessionExerciseCard(
                 OutcomeButton("Not completed", entry.outcome == ExerciseOutcome.NOT_COMPLETED, MaterialTheme.colorScheme.surfaceVariant) { onMark(ExerciseOutcome.NOT_COMPLETED, note) }
             }
             OutlinedTextField(note, { note = it }, label = { Text("Exercise notes") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+            if (entry.isAdHoc) {
+                TextButton(onClick = onRemove) { Text("Remove from session") }
+            }
         }
     }
 }
@@ -686,3 +797,13 @@ private fun <T> List<T>.swap(first: Int, second: Int): List<T> = toMutableList()
 }
 
 private fun Double.prettyLb(): String = if (this % 1.0 == 0.0) toInt().toString() else "%.2f".format(this).trimEnd('0').trimEnd('.')
+
+private fun Exercise.targetSummary(): String {
+    val target = if (targetType == ExerciseTargetType.TIME) "$durationSeconds sec" else "$repCount reps"
+    return "$setCount sets × $target  ·  ${currentWeightLb.prettyLb()} lb"
+}
+
+private fun SessionExercise.targetSummary(): String {
+    val target = if (performedTargetType == ExerciseTargetType.TIME) "$performedDurationSeconds sec" else "$performedRepCount reps"
+    return "$performedSetCount sets × $target  ·  ${performedWeightLb.prettyLb()} lb"
+}

@@ -1,6 +1,6 @@
 # WorkoutApp
 
-WorkoutApp is a local-only Android workout planner with a shared Kotlin application core and a headless JSONL client. Users create exercises, compose reusable workouts, schedule them on weekdays, log sessions, make pre-start substitutions, and apply simple progressive overload.
+WorkoutApp is a local-only Android workout planner with a shared Kotlin application core and a headless JSONL client. Users create exercises, compose reusable workouts, schedule them on weekdays, log rep- or time-targeted sessions, make temporary substitutions or additions, and apply simple progressive overload.
 
 ## Project layout
 

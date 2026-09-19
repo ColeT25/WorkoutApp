@@ -81,7 +81,7 @@ Primary screens are:
 - Exercise management.
 - Workout editing and weekday assignment.
 - Active workout sessions.
-- Temporary exercise substitution.
+- Workout customization before and during a session, including temporary substitutions and additions.
 - Session history.
 
 Workout structure, schedule, and workout-name editing are disabled while a workout session is active, but exercise settings remain editable. Active sessions use their start-time snapshots, so exercise edits affect future sessions only. A session can be cancelled without progression. If the application is interrupted, the active session remains resumable.
@@ -124,6 +124,8 @@ The application uses a shared SQLite-backed data design with an Android `SQLiteO
 
 The storage boundary should support real repository integration tests and should not force the headless client to depend on Android-only database APIs.
 
+The Android `SQLiteOpenHelper` and headless repository use the same versioned schema definitions. Android applies upgrades through `onUpgrade`; the headless repository applies the same migration statements before opening an existing database. The current schema is version 2, with the v1-to-v2 migration adding target mode/duration fields and session ad-hoc metadata with defaults that preserve existing data.
+
 ## Core data concepts
 
 ### Exercise
@@ -156,9 +158,10 @@ Each session exercise records:
 
 - Planned exercise.
 - Performed exercise, if substituted.
-- Sets, reps, and weight used for the session.
+- Sets, target mode/value, and weight used for the session.
 - Outcome: completed, too hard, or not completed.
 - Exercise notes.
+- Whether the entry was added only for this session.
 
 Sessions may also contain workout-level notes.
 
@@ -188,6 +191,17 @@ Substitutions are selected in the start-workout review and passed into session c
 - The performed substitute uses its own settings and current weight.
 - Progression applies to the performed substitute.
 - The planned exercise is not adjusted because it was not performed.
+
+The same customization flow can append an existing exercise for one session, both before starting and while the session is active. Temporary additions are snapshotted when added, appear at the end of the session, and can be removed only from that session. Planned entries cannot be removed. An effective exercise ID may appear at most once in a session, including across planned entries, substitutions, and additions.
+
+## Target modes
+
+Each exercise has a set count and one active target mode:
+
+- `REPS` stores an integer rep target.
+- `TIME` stores an integer duration target in seconds per set.
+
+Switching modes preserves the previous value for the inactive mode. Sessions snapshot the selected mode and value when each entry is added. There is no timer or actual-duration tracking in the initial version. Progressive overload remains weight-only in either target mode.
 
 ## History and plan changes
 

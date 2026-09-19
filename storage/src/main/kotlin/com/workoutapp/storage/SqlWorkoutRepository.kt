@@ -2,6 +2,7 @@ package com.workoutapp.storage
 
 import com.workoutapp.core.Exercise
 import com.workoutapp.core.ExerciseOutcome
+import com.workoutapp.core.ExerciseTargetType
 import com.workoutapp.core.SessionExercise
 import com.workoutapp.core.SessionStatus
 import com.workoutapp.core.Workout
@@ -14,7 +15,7 @@ class SqlWorkoutRepository(
     private val sql: SqlExecutor,
 ) : WorkoutRepository {
     init {
-        DatabaseSchema.statements.forEach(sql::execute)
+        DatabaseSchemaManager.ensureLatest(sql)
     }
 
     override fun <T> transaction(block: () -> T): T = sql.transaction(block)
@@ -30,15 +31,15 @@ class SqlWorkoutRepository(
 
     override fun insertExercise(exercise: Exercise) {
         sql.execute(
-            "INSERT INTO exercises (id, name, set_count, rep_count, current_weight_lb, increase_lb, decrease_lb, archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            listOf(exercise.id, exercise.name, exercise.setCount, exercise.repCount, exercise.currentWeightLb, exercise.increaseLb, exercise.decreaseLb, exercise.archived.asInt()),
+            "INSERT INTO exercises (id, name, set_count, rep_count, current_weight_lb, increase_lb, decrease_lb, target_type, duration_seconds, archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            listOf(exercise.id, exercise.name, exercise.setCount, exercise.repCount, exercise.currentWeightLb, exercise.increaseLb, exercise.decreaseLb, exercise.targetType.name, exercise.durationSeconds, exercise.archived.asInt()),
         )
     }
 
     override fun updateExercise(exercise: Exercise) {
         sql.execute(
-            "UPDATE exercises SET name = ?, set_count = ?, rep_count = ?, current_weight_lb = ?, increase_lb = ?, decrease_lb = ?, archived = ? WHERE id = ?",
-            listOf(exercise.name, exercise.setCount, exercise.repCount, exercise.currentWeightLb, exercise.increaseLb, exercise.decreaseLb, exercise.archived.asInt(), exercise.id),
+            "UPDATE exercises SET name = ?, set_count = ?, rep_count = ?, current_weight_lb = ?, increase_lb = ?, decrease_lb = ?, target_type = ?, duration_seconds = ?, archived = ? WHERE id = ?",
+            listOf(exercise.name, exercise.setCount, exercise.repCount, exercise.currentWeightLb, exercise.increaseLb, exercise.decreaseLb, exercise.targetType.name, exercise.durationSeconds, exercise.archived.asInt(), exercise.id),
         )
     }
 
@@ -107,7 +108,8 @@ class SqlWorkoutRepository(
             "UPDATE workout_sessions SET workout_name = ?, local_date = ?, started_at = ?, completed_at = ?, status = ?, note = ? WHERE id = ?",
             listOf(session.workoutName, session.localDate, session.startedAt, session.completedAt, session.status.name, session.note, session.id),
         )
-        session.exercises.forEach(::updateSessionExercise)
+        sql.execute("DELETE FROM session_exercises WHERE session_id = ?", listOf(session.id))
+        session.exercises.forEach { insertSessionExercise(session.id, it) }
     }
 
     override fun listSessions(): List<WorkoutSession> = sql.query(
@@ -119,7 +121,7 @@ class SqlWorkoutRepository(
 
     private fun insertSessionExercise(sessionId: String, entry: SessionExercise) {
         sql.execute(
-            "INSERT INTO session_exercises (id, session_id, position, planned_exercise_id, planned_exercise_name, planned_set_count, planned_rep_count, planned_weight_lb, performed_exercise_id, performed_exercise_name, performed_set_count, performed_rep_count, performed_weight_lb, performed_increase_lb, performed_decrease_lb, outcome, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO session_exercises (id, session_id, position, planned_exercise_id, planned_exercise_name, planned_set_count, planned_rep_count, planned_weight_lb, performed_exercise_id, performed_exercise_name, performed_set_count, performed_rep_count, performed_weight_lb, performed_increase_lb, performed_decrease_lb, outcome, note, planned_target_type, planned_duration_seconds, performed_target_type, performed_duration_seconds, is_ad_hoc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             listOf(
                 entry.id,
                 sessionId,
@@ -138,30 +140,11 @@ class SqlWorkoutRepository(
                 entry.performedDecreaseLb,
                 entry.outcome?.name,
                 entry.note,
-            ),
-        )
-    }
-
-    private fun updateSessionExercise(entry: SessionExercise) {
-        sql.execute(
-            "UPDATE session_exercises SET position = ?, planned_exercise_id = ?, planned_exercise_name = ?, planned_set_count = ?, planned_rep_count = ?, planned_weight_lb = ?, performed_exercise_id = ?, performed_exercise_name = ?, performed_set_count = ?, performed_rep_count = ?, performed_weight_lb = ?, performed_increase_lb = ?, performed_decrease_lb = ?, outcome = ?, note = ? WHERE id = ?",
-            listOf(
-                entry.position,
-                entry.plannedExerciseId,
-                entry.plannedExerciseName,
-                entry.plannedSetCount,
-                entry.plannedRepCount,
-                entry.plannedWeightLb,
-                entry.performedExerciseId,
-                entry.performedExerciseName,
-                entry.performedSetCount,
-                entry.performedRepCount,
-                entry.performedWeightLb,
-                entry.performedIncreaseLb,
-                entry.performedDecreaseLb,
-                entry.outcome?.name,
-                entry.note,
-                entry.id,
+                entry.plannedTargetType.name,
+                entry.plannedDurationSeconds,
+                entry.performedTargetType.name,
+                entry.performedDurationSeconds,
+                entry.isAdHoc.asInt(),
             ),
         )
     }
@@ -174,6 +157,8 @@ class SqlWorkoutRepository(
         currentWeightLb = double("current_weight_lb"),
         increaseLb = double("increase_lb"),
         decreaseLb = double("decrease_lb"),
+        targetType = ExerciseTargetType.valueOf(string("target_type")),
+        durationSeconds = int("duration_seconds"),
         archived = int("archived") != 0,
     )
 
@@ -200,10 +185,10 @@ class SqlWorkoutRepository(
         completedAt = stringOrNull("completed_at"),
         status = SessionStatus.valueOf(string("status")),
         note = string("note"),
-        exercises = exerciseRows.map { it.toSessionExercise(string("id")) },
+        exercises = exerciseRows.map { it.toSessionExercise() },
     )
 
-    private fun Map<String, Any?>.toSessionExercise(sessionId: String) = SessionExercise(
+    private fun Map<String, Any?>.toSessionExercise() = SessionExercise(
         id = string("id"),
         position = int("position"),
         plannedExerciseId = string("planned_exercise_id"),
@@ -220,6 +205,11 @@ class SqlWorkoutRepository(
         performedDecreaseLb = double("performed_decrease_lb"),
         outcome = stringOrNull("outcome")?.let(ExerciseOutcome::valueOf),
         note = string("note"),
+        plannedTargetType = ExerciseTargetType.valueOf(string("planned_target_type")),
+        plannedDurationSeconds = int("planned_duration_seconds"),
+        performedTargetType = ExerciseTargetType.valueOf(string("performed_target_type")),
+        performedDurationSeconds = int("performed_duration_seconds"),
+        isAdHoc = int("is_ad_hoc") != 0,
     )
 
     private fun Map<String, Any?>.string(name: String): String = this[name]?.toString()

@@ -23,11 +23,14 @@ The supported operations are:
 create_exercise, update_exercise, archive_exercise, list_exercises
 create_workout, update_workout, archive_workout, list_workouts
 add_exercise, remove_exercise, reorder_exercises, schedule_workout
-today, start_session, get_session, mark_exercise, set_session_note
+today, start_session, add_session_exercise, remove_session_exercise, get_session, mark_exercise, set_session_note
 finish_session, cancel_session, history, state
 ```
 
 `start_session` accepts an optional `substitutions` object whose keys are planned exercise IDs and whose values are performed exercise IDs. These substitutions are validated and snapshotted when the session starts; they never modify the workout template.
+It also accepts optional `additionalExerciseIds`, which append existing exercises to that session only. While active, `add_session_exercise` and `remove_session_exercise` provide the same temporary behavior. Planned entries cannot be removed, and an effective exercise can appear only once in a session.
+
+Exercises accept `targetType` (`REPS` or `TIME`) and a target value: `reps` for rep mode or `seconds`/`durationSeconds` for time mode. Existing or omitted target fields default to `REPS` and 60 seconds for the inactive duration value. Time targets are display-only; there is no timer or actual-duration command.
 
 Example sequence:
 
@@ -57,10 +60,11 @@ Validation and domain failures are structured too:
 2. Create a workout and add exercises in the intended order.
 3. Assign one or more weekday numbers (`1` through `7`) or names (`MONDAY` through `SUNDAY`).
 4. Start a session with an explicit date and optional pre-start substitutions.
-5. Mark every exercise as `COMPLETED`, `TOO_HARD`, or `NOT_COMPLETED`, with optional notes.
-6. Finish the session, optionally providing the final workout note in the finish_session command.
-7. Or cancel the session; cancellation applies no progression and is omitted from completed history.
-8. Inspect state, history, or get_session to verify snapshots and progression.
+5. Optionally add or remove session-only entries with `add_session_exercise` and `remove_session_exercise`.
+6. Mark every exercise as `COMPLETED`, `TOO_HARD`, or `NOT_COMPLETED`, with optional notes.
+7. Finish the session, optionally providing the final workout note in the finish_session command.
+8. Or cancel the session; cancellation applies no progression and is omitted from completed history.
+9. Inspect state, history, or get_session to verify snapshots, target values, temporary entries, and progression.
 
 The shared core rejects plan edits while any session is active, requires an outcome for every exercise, clamps weight at zero, and makes repeated `finish_session` calls safe.
 

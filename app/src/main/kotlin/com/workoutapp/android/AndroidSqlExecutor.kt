@@ -9,13 +9,13 @@ import com.workoutapp.storage.SqlExecutor
 class AndroidSqlExecutor(
     context: Context,
 ) : SqlExecutor {
-    private val helper = object : SQLiteOpenHelper(context.applicationContext, "workoutapp.db", null, 1) {
+    private val helper = object : SQLiteOpenHelper(context.applicationContext, "workoutapp.db", null, DatabaseSchema.CURRENT_VERSION) {
         override fun onCreate(db: SQLiteDatabase) {
             DatabaseSchema.statements.forEach(db::execSQL)
         }
 
         override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-            // Schema migrations will be added before the database version changes.
+            DatabaseSchema.migrationStatements(oldVersion, newVersion).forEach(db::execSQL)
         }
     }
 

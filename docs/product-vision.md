@@ -16,14 +16,16 @@ Each exercise contains:
 
 - Name
 - Set count
-- Rep count
+- Target mode: reps or time
+- Rep count, when using rep mode
+- Target duration in seconds per set, when using time mode
 - Current weight
 - Progressive overload increase amount
 - Progressive overload decrease amount
 
-Exercise settings are shared wherever the same exercise is reused. If an exercise appears in multiple workouts, changing its settings or current weight affects all of those workouts.
+Exercise settings are shared wherever the same exercise is reused. If an exercise appears in multiple workouts, changing its settings or current weight affects all of those workouts. Switching target modes preserves the previous value for each mode.
 
-The initial version only needs to support weight-and-repetition exercises using pounds.
+The initial version only needs to support weight-based exercises using pounds; a target may be reps or time.
 
 ### Workouts
 
@@ -51,6 +53,8 @@ For each exercise in a session, the user can:
 - Mark it not completed.
 - Mark it too hard.
 - Record notes for that exercise session.
+
+The user can add an existing exercise to the current session before starting or while it is active. Added exercises are appended, use a snapshot of their settings at the time they are added, and can be removed from that session without changing the saved workout.
 
 The user can also record notes for the workout session as a whole.
 
@@ -86,6 +90,8 @@ Substitution behavior:
 - The performed substitute receives the session result and any applicable weight adjustment.
 - The original planned exercise is not adjusted because it was not performed.
 
+The same start-workout customization flow supports adding an existing exercise for this session only. An exercise may appear only once in a session, including across substitutions and additions. Temporary additions are marked in history.
+
 ## History and data integrity
 
 Past workout sessions should remain accurate even when exercises or workout templates are later edited or archived.
@@ -97,6 +103,7 @@ Session history should preserve the relevant values from the time of the session
 - Planned exercise
 - Performed exercise, if different
 - Sets and reps used
+- Target mode and duration used, when time-based
 - Weight used
 - Result status
 - Exercise notes
@@ -124,7 +131,7 @@ The first version does not need:
 - Data export or cloud sync
 - Warm-up sets
 - RPE or RIR tracking
-- Time, distance, or cardio tracking
+- Timers or actual duration tracking
 - Percentage-based programming or one-rep-max calculations
 - Wearable integrations
 - Social features

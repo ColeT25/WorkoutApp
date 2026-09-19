@@ -1,6 +1,8 @@
 package com.workoutapp.agent
 
+import com.workoutapp.core.DEFAULT_DURATION_SECONDS
 import com.workoutapp.core.ExerciseOutcome
+import com.workoutapp.core.ExerciseTargetType
 import com.workoutapp.core.WorkoutApplication
 import java.time.DayOfWeek
 import kotlinx.serialization.json.JsonArray
@@ -33,6 +35,8 @@ class JsonlCommandProcessor(
                 currentWeightLb = command.requiredDouble("weightLb"),
                 increaseLb = command.requiredDouble("increaseLb"),
                 decreaseLb = command.requiredDouble("decreaseLb"),
+                targetType = command.targetType(),
+                durationSeconds = command.durationSeconds(),
             ).toJson()
             "update_exercise" -> application.updateExercise(
                 id = command.requiredString("id"),
@@ -42,6 +46,8 @@ class JsonlCommandProcessor(
                 currentWeightLb = command.requiredDouble("weightLb"),
                 increaseLb = command.requiredDouble("increaseLb"),
                 decreaseLb = command.requiredDouble("decreaseLb"),
+                targetType = command.targetType(),
+                durationSeconds = command.durationSeconds(),
             ).toJson()
             "archive_exercise" -> application.archiveExercise(command.requiredString("id")).toJson()
             "list_exercises" -> buildJsonArray { application.listExercises(command.boolean("includeArchived")).forEach { add(it.toJson()) } }
@@ -64,6 +70,7 @@ class JsonlCommandProcessor(
                 workoutId = command.requiredString("workoutId"),
                 localDate = command.requiredString("date"),
                 substitutions = command.substitutions(),
+                additionalExerciseIds = command.optionalArray("additionalExerciseIds")?.map { it.jsonPrimitive.content } ?: emptyList(),
             ).toJson()
             "get_session" -> application.getSession(command.requiredString("sessionId"))?.toJson() ?: error("Session not found")
             "mark_exercise" -> application.recordExerciseOutcome(
@@ -71,6 +78,14 @@ class JsonlCommandProcessor(
                 plannedExerciseId = command.requiredString("plannedExerciseId"),
                 outcome = ExerciseOutcome.valueOf(command.requiredString("outcome").uppercase()),
                 note = command.optionalString("note") ?: "",
+            ).toJson()
+            "add_session_exercise" -> application.addExerciseToSession(
+                sessionId = command.requiredString("sessionId"),
+                exerciseId = command.requiredString("exerciseId"),
+            ).toJson()
+            "remove_session_exercise" -> application.removeExerciseFromSession(
+                sessionId = command.requiredString("sessionId"),
+                sessionExerciseId = command.requiredString("sessionExerciseId"),
             ).toJson()
             "set_session_note" -> application.setSessionNote(command.requiredString("sessionId"), command.optionalString("note") ?: "").toJson()
             "finish_session" -> application.finishSession(
@@ -101,6 +116,8 @@ class JsonlCommandProcessor(
         put("name", name)
         put("sets", setCount)
         put("reps", repCount)
+        put("targetType", targetType.name)
+        put("seconds", durationSeconds)
         put("weightLb", currentWeightLb)
         put("increaseLb", increaseLb)
         put("decreaseLb", decreaseLb)
@@ -131,16 +148,21 @@ class JsonlCommandProcessor(
                 put("plannedExerciseName", entry.plannedExerciseName)
                 put("plannedSets", entry.plannedSetCount)
                 put("plannedReps", entry.plannedRepCount)
+                put("plannedTargetType", entry.plannedTargetType.name)
+                put("plannedSeconds", entry.plannedDurationSeconds)
                 put("plannedWeightLb", entry.plannedWeightLb)
                 put("performedExerciseId", entry.performedExerciseId)
                 put("performedExerciseName", entry.performedExerciseName)
                 put("performedSets", entry.performedSetCount)
                 put("performedReps", entry.performedRepCount)
+                put("performedTargetType", entry.performedTargetType.name)
+                put("performedSeconds", entry.performedDurationSeconds)
                 put("performedWeightLb", entry.performedWeightLb)
                 put("performedIncreaseLb", entry.performedIncreaseLb)
                 put("performedDecreaseLb", entry.performedDecreaseLb)
                 put("outcome", entry.outcome?.name)
                 put("note", entry.note)
+                put("isAdHoc", entry.isAdHoc)
             })
         } }
     }
@@ -156,10 +178,22 @@ class JsonlCommandProcessor(
     private fun JsonObject.requiredDouble(name: String): Double = get(name)?.jsonPrimitive?.double
         ?: error("$name is required")
 
+    private fun JsonObject.targetType(): ExerciseTargetType = optionalString("targetType")
+        ?.let { ExerciseTargetType.valueOf(it.uppercase()) }
+        ?: ExerciseTargetType.REPS
+
+    private fun JsonObject.durationSeconds(): Int = optionalInt("seconds")
+        ?: optionalInt("durationSeconds")
+        ?: DEFAULT_DURATION_SECONDS
+
+    private fun JsonObject.optionalInt(name: String): Int? = get(name)?.jsonPrimitive?.int
+
     private fun JsonObject.boolean(name: String): Boolean = get(name)?.jsonPrimitive?.booleanOrNull ?: false
 
     private fun JsonObject.requiredArray(name: String): JsonArray = get(name)?.jsonArray
         ?: error("$name is required")
+
+    private fun JsonObject.optionalArray(name: String): JsonArray? = get(name)?.jsonArray
 
     private fun JsonObject.substitutions(): Map<String, String> = get("substitutions")?.jsonObject
         ?.mapValues { (_, value) -> value.jsonPrimitive.content }

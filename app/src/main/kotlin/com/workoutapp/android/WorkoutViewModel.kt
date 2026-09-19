@@ -5,8 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.workoutapp.core.DEFAULT_DURATION_SECONDS
 import com.workoutapp.core.Exercise
 import com.workoutapp.core.ExerciseOutcome
+import com.workoutapp.core.ExerciseTargetType
 import com.workoutapp.core.WorkoutApplication
 import com.workoutapp.core.WorkoutException
 import com.workoutapp.core.WorkoutSession
@@ -61,13 +63,13 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
         state = state.copy(screen = screen, editingExerciseId = exerciseId, editingWorkoutId = workoutId, error = null)
     }
 
-    fun createExercise(name: String, sets: Int, reps: Int, weightLb: Double, increaseLb: Double, decreaseLb: Double) = runAction {
-        applicationCore.createExercise(name, sets, reps, weightLb, increaseLb, decreaseLb)
+    fun createExercise(name: String, sets: Int, reps: Int, weightLb: Double, increaseLb: Double, decreaseLb: Double, targetType: ExerciseTargetType = ExerciseTargetType.REPS, durationSeconds: Int = DEFAULT_DURATION_SECONDS) = runAction {
+        applicationCore.createExercise(name, sets, reps, weightLb, increaseLb, decreaseLb, targetType, durationSeconds)
         navigate(if (state.activeSession != null) AppScreen.ACTIVE_SESSION else AppScreen.PLANS)
     }
 
-    fun updateExercise(id: String, name: String, sets: Int, reps: Int, weightLb: Double, increaseLb: Double, decreaseLb: Double) = runAction {
-        applicationCore.updateExercise(id, name, sets, reps, weightLb, increaseLb, decreaseLb)
+    fun updateExercise(id: String, name: String, sets: Int, reps: Int, weightLb: Double, increaseLb: Double, decreaseLb: Double, targetType: ExerciseTargetType = ExerciseTargetType.REPS, durationSeconds: Int = DEFAULT_DURATION_SECONDS) = runAction {
+        applicationCore.updateExercise(id, name, sets, reps, weightLb, increaseLb, decreaseLb, targetType, durationSeconds)
         navigate(if (state.activeSession != null) AppScreen.ACTIVE_SESSION else AppScreen.PLANS)
     }
 
@@ -95,13 +97,21 @@ class WorkoutViewModel(application: Application) : AndroidViewModel(application)
 
     fun assignDays(workoutId: String, days: Set<DayOfWeek>) = runAction { applicationCore.assignWorkoutToDays(workoutId, days) }
 
-    fun startSession(workoutId: String, substitutions: Map<String, String> = emptyMap()): Boolean = runAction {
-        applicationCore.startSession(workoutId, substitutions = substitutions)
+    fun startSession(workoutId: String, substitutions: Map<String, String> = emptyMap(), additionalExerciseIds: List<String> = emptyList()): Boolean = runAction {
+        applicationCore.startSession(workoutId, substitutions = substitutions, additionalExerciseIds = additionalExerciseIds)
         navigate(AppScreen.ACTIVE_SESSION)
     }
 
     fun markExercise(sessionId: String, plannedExerciseId: String, outcome: ExerciseOutcome, note: String) = runAction {
         applicationCore.recordExerciseOutcome(sessionId, plannedExerciseId, outcome, note)
+    }
+
+    fun addSessionExercise(sessionId: String, exerciseId: String): Boolean = runAction {
+        applicationCore.addExerciseToSession(sessionId, exerciseId)
+    }
+
+    fun removeSessionExercise(sessionId: String, sessionExerciseId: String): Boolean = runAction {
+        applicationCore.removeExerciseFromSession(sessionId, sessionExerciseId)
     }
 
     fun setSessionNote(sessionId: String, note: String) = runAction { applicationCore.setSessionNote(sessionId, note) }
